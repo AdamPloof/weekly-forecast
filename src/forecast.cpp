@@ -3,24 +3,28 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <zip.hpp>
+#include <forecast_params.hpp>
 
 // static int verbose_flag;
 
-void help() {
-    std::cout << "Help func TODO.";
+namespace {
+    using namespace weekly_forecast;
 
-    exit(1);
+    void help() {
+        std::cout << "Help func TODO.";
+
+        exit(1);
+    }
+
+    void setZip(ForecastParams* params, std::string zipCode) {
+        Zip zip(zipCode);    
+        params->zip = &zip;
+    }
 }
 
 int main(int argc, char* argv[]) {
     // TODO: move this out of main
     using namespace weekly_forecast;
-    struct ForecastParams {
-        Zip* zip;
-        int days;
-
-        ForecastParams() : days {0} {};
-    };
 
     const char* const shortOpts = "z:d:";
     static struct option longOpts[] = {
@@ -31,7 +35,6 @@ int main(int argc, char* argv[]) {
 
     int arg;
     int argIdx;
-    std::string zipCode;
     ForecastParams params;
     while (true) {
         arg = getopt_long(argc, argv, shortOpts, longOpts, &argIdx);
@@ -45,9 +48,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "No flags to set, how did we get here?\n";
                 break;
             case 'z':
-                // Would be cool too set the zip param directly here but not easy since it requires
-                // initializing a new Zip object.
-                zipCode = optarg;
+                setZip(&params, optarg);
                 break;
             case 'd':
                 params.days = std::stoi(optarg);
@@ -64,9 +65,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    Zip zip(zipCode);
-    params.zip = &zip;
-
+    // TODO: Something is definitely wrong with the way we're intializing the params
+    // struct because the value in params.zip->getCode() is way weird.
     std::cout << "Zip is: " << params.zip->getCode() << std::endl;
     std::cout << "Number of days is: " << params.days << std::endl ;
 

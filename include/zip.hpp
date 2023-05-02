@@ -1,5 +1,5 @@
-#ifndef ZIP_HEADER
-#define ZIP_HEADER
+#ifndef ZIP_H
+#define ZIP_H
 
 #include <string>
 
