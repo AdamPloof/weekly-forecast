@@ -1,18 +1,18 @@
 #include <string>
 #include <iostream>
 #include <stdio.h>
-#include <zip.hpp>
+#include "zip_code.hpp"
 
-namespace weekly_forecast {
+namespace wf {
     // Note: the correct format for a numeric ZIP+4 code is five digits, a hyphen, and four digits.
-    Zip::Zip(const std::string code) : m_code {code} {
+    ZipCode::ZipCode(const std::string code) : m_code {code} {
         if (!isValid(&code)) {
             // throw error
             std::cout << "Zip is not valid";
         }
     }
 
-    Zip::Zip(const int code) {
+    ZipCode::ZipCode(const int code) {
         const std::string strCode = std::to_string(code);
         if (!isValid(&strCode)) {
             // throw error
@@ -22,7 +22,7 @@ namespace weekly_forecast {
         m_code = strCode;
     }
 
-    bool Zip::isValid(const std::string* code) {
+    bool ZipCode::isValid(const std::string* code) {
         bool valid = true;
         const int zipLen = code->length();
 
@@ -37,7 +37,7 @@ namespace weekly_forecast {
         return valid;
     }
 
-    const std::string Zip::getCode() {
+    const std::string ZipCode::getCode() {
         return m_code;
     }
 } // weekly_forecast

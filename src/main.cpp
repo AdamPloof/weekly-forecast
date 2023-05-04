@@ -2,21 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include <zip.hpp>
-#include <forecast_params.hpp>
+#include "zip_code.hpp"
+#include "forecast_params.hpp"
 
 // static int verbose_flag;
 
 namespace {
-    using namespace weekly_forecast;
-
     void help() {
         std::cout << "Help func TODO.";
 
         exit(1);
     }
 
-    ForecastParams getParams(int argc, char* argv[]) {
+    wf::ForecastParams getParams(int argc, char* argv[]) {
         const char* const shortOpts = "z:d:";
         static struct option longOpts[] = {
             {"zip", required_argument, nullptr, 'z'},
@@ -26,7 +24,7 @@ namespace {
 
         int arg;
         int argIdx;
-        ForecastParams params;
+        wf::ForecastParams params;
         while (true) {
             arg = getopt_long(argc, argv, shortOpts, longOpts, &argIdx);
             if (arg == -1) {
@@ -59,13 +57,8 @@ namespace {
 }
 
 int main(int argc, char* argv[]) {
-    // TODO: move this out of main
-    using namespace weekly_forecast;
+    wf::ForecastParams params = getParams(argc, argv);
 
-    ForecastParams params = getParams(argc, argv);
-
-    // TODO: Something is definitely wrong with the way we're intializing the params
-    // struct because the value in params.zip->getCode() is way weird.
     std::cout << "Zip is: " << params.zip << std::endl;
     std::cout << "Number of days is: " << params.days << std::endl ;
 

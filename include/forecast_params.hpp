@@ -2,9 +2,8 @@
 #define FORECAST_PARAMS_H
 
 #include <string>
-#include "zip.hpp"
 
-namespace weekly_forecast {
+namespace wf {
     struct ForecastParams {
         std::string zip;
         int days;

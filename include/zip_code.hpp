@@ -3,11 +3,11 @@
 
 #include <string>
 
-namespace weekly_forecast {
-    class Zip {
+namespace wf {
+    class ZipCode {
         public:
-            Zip(std::string code);
-            Zip(int code);
+            ZipCode(std::string code);
+            ZipCode(int code);
             const std::string getCode();
 
         private:
