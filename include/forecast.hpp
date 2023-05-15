@@ -26,18 +26,18 @@ namespace wf {
     class Forecast {
         public:
             Forecast();
-            Forecast(std::string zip);
             Forecast(int days);
-            Forecast(std::string zip, int days);
-            void setTempUnit(TempScale);
+            void setTempScale(TempScale);
             void fetchForecast();
-            ~Forecast();
+            // ~Forecast();
         
         private:
             int m_days;
-            std::unique_ptr<ZipCode> m_zip;
             std::vector<DailyForecast> m_forecastDays;
             TempScale m_tempScale;
+            std::string m_office;
+            int m_gridX;
+            int m_gridY;
     };
 }
 

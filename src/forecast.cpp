@@ -7,24 +7,10 @@
 
 
 namespace wf {
-    Forecast::Forecast() : m_days {5} {
-        // TODO: get default zip from config file.
-        std::unique_ptr<ZipCode> m_zip = std::make_unique<ZipCode>("05401");
-    }
+    Forecast::Forecast(int days) : m_days {days}, m_tempScale {TempScale::FAHRENHEIT} {}
+    Forecast::Forecast() : m_days {5}, m_tempScale {TempScale::FAHRENHEIT} {}
 
-    Forecast::Forecast(std::string zip) : m_days {5} {
-        std::unique_ptr<ZipCode> m_zip = std::make_unique<ZipCode>(zip);
-    }
-
-    Forecast::Forecast(int days) : m_days {days} {
-        std::unique_ptr<ZipCode> m_zip = std::make_unique<ZipCode>("05401");
-    }
-
-    Forecast::Forecast(std::string zip, int days) : m_days {days} {
-        std::unique_ptr<ZipCode> m_zip = std::make_unique<ZipCode>(zip);
-    }
-
-    void Forecast::setTempUnit(TempScale scale) {
+    void Forecast::setTempScale(TempScale scale) {
         m_tempScale = scale;
     }
 
