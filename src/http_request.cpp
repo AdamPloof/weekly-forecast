@@ -1,41 +1,47 @@
-#include "http_client.hpp"
 #include <curl/curl.h>
 #include <string>
+#include "http_request.hpp"
 
-namespace wf::http_client {
-    HttpClient::HttpClient() {
+namespace wf::http_request {
+    HttpRequest::HttpRequest() {
         headers = nullptr;
+        status = clientStatus::NOT_INITALIZED;
     };
 
-    int HttpClient::init() {
+    clientStatus HttpRequest::getStatus() {
+        return status;
+    }
+
+    int HttpRequest::init() {
         int isReady = 0;
         curl_global_init(CURL_GLOBAL_DEFAULT);
         curl = curl_easy_init();
 
         if (curl) {
-            isReady = 1;
+            status = clientStatus::READY;
+        } else {
+            status = clientStatus::ERROR;
         }
 
         return isReady;
     }
 
-    void HttpClient::appendHeader(std::string headerName, std::string value) {
+    void HttpRequest::appendHeader(std::string headerName, std::string value) {
         std::string header = headerName + ": " + value;
         headers = curl_slist_append(headers, header.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     }
 
-    void HttpClient::sendRequest(std::string url) {
+    void HttpRequest::send(std::string url) {
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         res = curl_easy_perform(curl);
         if(res != CURLE_OK) {
             fprintf(stderr, "curl_easy_perform() failed: %s\n",
             curl_easy_strerror(res));
-
         }
     }
 
-    HttpClient::~HttpClient() {
+    HttpRequest::~HttpRequest() {
         curl_easy_cleanup(curl);
         curl_slist_free_all(headers);
     }

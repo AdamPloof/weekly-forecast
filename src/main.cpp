@@ -3,7 +3,11 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include "zip_code.hpp"
+#include "http_request.hpp"
 #include "forecast_params.hpp"
+
+using namespace wf;
+using namespace wf::http_request;
 
 // static int verbose_flag;
 
@@ -14,7 +18,7 @@ namespace {
         exit(1);
     }
 
-    wf::ForecastParams getParams(int argc, char* argv[]) {
+    ForecastParams getParams(int argc, char* argv[]) {
         const char* const shortOpts = "z:d:";
         static struct option longOpts[] = {
             {"zip", required_argument, nullptr, 'z'},
@@ -24,7 +28,7 @@ namespace {
 
         int arg;
         int argIdx;
-        wf::ForecastParams params;
+        ForecastParams params;
         while (true) {
             arg = getopt_long(argc, argv, shortOpts, longOpts, &argIdx);
             if (arg == -1) {
@@ -57,7 +61,27 @@ namespace {
 }
 
 int main(int argc, char* argv[]) {
-    wf::ForecastParams params = getParams(argc, argv);
+
+    ForecastParams params = getParams(argc, argv);
+
+    // Get the grid points for the zip/address provided.
+
+    // Fetch the forecast for the grid points
+    HttpRequest request = HttpRequest();
+    request.init();
+
+    if (request.getStatus() == clientStatus::ERROR) {
+        // log error
+    }
+
+    request.appendHeader("User-Agent", "adamploof@hotmail.com");
+
+    std::string url = "https://api.weather.gov/gridpoints/TOP/31,80/forecast";
+    request.send(url);
+
+    // Parse the response into a JSON object.
+
+    // Return the forecast formatted according to any options provided.
 
     std::cout << "Zip is: " << params.zip << std::endl;
     std::cout << "Number of days is: " << params.days << std::endl ;
