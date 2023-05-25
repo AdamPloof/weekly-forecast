@@ -79,7 +79,12 @@ int main(int argc, char* argv[]) {
     std::string url = "https://api.weather.gov/gridpoints/TOP/31,80/forecast";
     request.send(url);
 
-    // Parse the response into a JSON object.
+    // std::string res = request.getResponse();
+    // std::cout << res << std::endl;
+
+    std::cout << "Response: " << std::endl;
+    json jsonRes = request.getJsonResponse();
+    std::cout << jsonRes["properties"]["periods"][0] << std::endl;
 
     // Return the forecast formatted according to any options provided.
 
