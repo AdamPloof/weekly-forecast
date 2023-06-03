@@ -5,9 +5,10 @@
 #include "zip_code.hpp"
 #include "http_request.hpp"
 #include "forecast_params.hpp"
+#include "forecast.hpp"
 
-using namespace wf;
-using namespace wf::http_request;
+using namespace forecast;
+using namespace forecast::http_request;
 
 // static int verbose_flag;
 
@@ -78,18 +79,10 @@ int main(int argc, char* argv[]) {
 
     std::string url = "https://api.weather.gov/gridpoints/TOP/31,80/forecast";
     request.send(url);
+    json forecastData = request.getJsonResponse();
 
-    // std::string res = request.getResponse();
-    // std::cout << res << std::endl;
-
-    std::cout << "Response: " << std::endl;
-    json jsonRes = request.getJsonResponse();
-    std::cout << jsonRes["properties"]["periods"][0] << std::endl;
-
-    // Return the forecast formatted according to any options provided.
-
-    std::cout << "Zip is: " << params.zip << std::endl;
-    std::cout << "Number of days is: " << params.days << std::endl ;
+    Forecast forecast = Forecast(forecastData, "Bolton VT, 05401");
+    forecast.printForecast();
 
     return 0;
 }

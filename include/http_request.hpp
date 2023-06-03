@@ -7,7 +7,7 @@
 
 using json = nlohmann::json;
 
-namespace wf::http_request {
+namespace forecast::http_request {
     enum class clientStatus {NOT_INITALIZED, READY, ERROR};
 
     class HttpRequest {

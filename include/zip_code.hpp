@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace wf {
+namespace forecast {
     class ZipCode {
         public:
             ZipCode(std::string code);

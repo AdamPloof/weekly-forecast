@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace wf {
+namespace forecast {
     struct ForecastParams {
         std::string zip;
         int days;

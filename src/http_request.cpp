@@ -5,7 +5,7 @@
 
 using json = nlohmann::json;
 
-namespace wf::http_request {
+namespace forecast::http_request {
     HttpRequest::HttpRequest() {
         headers = nullptr;
         status = clientStatus::NOT_INITALIZED;

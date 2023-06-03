@@ -1,5 +1,5 @@
 #include <forecast_params.hpp>
 
-namespace wf {
+namespace forecast {
     ForecastParams::ForecastParams() : zip {""}, days {5} {};
 }

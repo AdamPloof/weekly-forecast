@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "zip_code.hpp"
 
-namespace wf {
+namespace forecast {
     // Note: the correct format for a numeric ZIP+4 code is five digits, a hyphen, and four digits.
     ZipCode::ZipCode(const std::string code) : m_code {code} {
         if (!isValid(&code)) {
