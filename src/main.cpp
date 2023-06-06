@@ -6,6 +6,7 @@
 #include "http_request.hpp"
 #include "forecast_params.hpp"
 #include "forecast.hpp"
+#include "office.hpp"
 
 using namespace forecast;
 using namespace forecast::http_request;
@@ -61,6 +62,30 @@ namespace {
     }
 }
 
+json getForecastData(HttpRequest* request, std::string office, int gridX, int gridY) {
+    std::ostringstream url;
+    url << "https://api.weather.gov/gridpoints/" 
+        << office << "/"
+         << gridX << "," << gridY 
+         << "/forecast";
+
+    request->send(url.str());
+    json forecastData = request->getJsonResponse();
+
+    return forecastData;
+}
+
+json getGridCoordinates(HttpRequest* request, const Coordinates* coords){
+    std::ostringstream url;
+    url << "https://api.weather.gov/points/" 
+         << coords->latitude << "," << coords->longitude;
+
+    request->send(url.str());
+    json forecastData = request->getJsonResponse();
+
+    return forecastData;
+}
+
 int main(int argc, char* argv[]) {
 
     ForecastParams params = getParams(argc, argv);
@@ -74,13 +99,9 @@ int main(int argc, char* argv[]) {
     if (request.getStatus() == clientStatus::ERROR) {
         // log error
     }
-
     request.appendHeader("User-Agent", "adamploof@hotmail.com");
 
-    std::string url = "https://api.weather.gov/gridpoints/TOP/31,80/forecast";
-    request.send(url);
-    json forecastData = request.getJsonResponse();
-
+    json forecastData = getForecastData(&request, "TOP", 31, 80);
     Forecast forecast = Forecast(forecastData, "Bolton VT, 05401");
     forecast.printForecast();
 

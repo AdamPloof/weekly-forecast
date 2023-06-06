@@ -15,6 +15,6 @@ namespace forecast {
             std::string m_code;
 
     };
-} // namespace weeklyForecast
+}
 
 #endif

@@ -53,6 +53,7 @@ namespace forecast {
         } else {
             temperature = "low: " + std::to_string(tempVal);
         }
+        temperature.append(period["temperatureUnit"]);
 
         int precipVal;
         if (period["probabilityOfPrecipitation"]["value"] == nullptr) {
