@@ -4,12 +4,11 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include "forecast.hpp"
-#include "zip_code.hpp"
 
 using json = nlohmann::json;
 
 namespace forecast {
-    Forecast::Forecast(const json forecastData, const std::string location) : m_location(location) {
+    Forecast::Forecast(const json forecastData, const Office office) : m_office(office) {
         const json periods = forecastData["properties"]["periods"];
         for (const json& period : periods) {
             m_periods.push_back(period);
@@ -40,7 +39,7 @@ namespace forecast {
     void Forecast::makeHeader(std::ostringstream* output) {
         *output << makeTitle() << "\n";
         *output << m_startDate << " - " << m_endDate << "\n";
-        *output << m_location;
+        *output << m_office.city << ", " << m_office.state;
 
         *output << makeDivider(true);
     }

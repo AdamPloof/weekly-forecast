@@ -1,6 +1,7 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <iostream>
 #include "http_request.hpp"
 
 using json = nlohmann::json;
@@ -38,6 +39,10 @@ namespace forecast::http_request {
         return real_size;
     }
 
+    void HttpRequest::clearBuffer() {
+        readBuffer = "";
+    }
+
     void HttpRequest::writeResponse(void* contents, size_t content_size) {
         readBuffer.append(static_cast<char*>(contents), content_size);
     }
@@ -49,6 +54,9 @@ namespace forecast::http_request {
     }
 
     void HttpRequest::send(std::string url) {
+        // Clear the buffer of any leftover data from previous responses
+        clearBuffer();
+
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         res = curl_easy_perform(curl);
         if(res != CURLE_OK) {

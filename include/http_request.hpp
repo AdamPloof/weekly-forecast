@@ -29,6 +29,7 @@ namespace forecast::http_request {
             clientStatus status;
             std::string readBuffer;
             static size_t handleResponse(void* contents, size_t size, size_t nmemb, void* buffer);
+            void clearBuffer();
             void writeResponse(void* contents, size_t content_size);
     };
 }

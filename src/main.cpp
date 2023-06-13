@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include "zip_code.hpp"
 #include "http_request.hpp"
 #include "forecast_params.hpp"
 #include "forecast.hpp"
@@ -62,11 +61,11 @@ namespace {
     }
 }
 
-json getForecastData(HttpRequest* request, std::string office, int gridX, int gridY) {
+json getForecastData(HttpRequest* request, Office* office) {
     std::ostringstream url;
     url << "https://api.weather.gov/gridpoints/" 
-        << office << "/"
-         << gridX << "," << gridY 
+        << office->gridId << "/"
+         << office->gridX << "," << office->gridY 
          << "/forecast";
 
     request->send(url.str());
@@ -75,19 +74,21 @@ json getForecastData(HttpRequest* request, std::string office, int gridX, int gr
     return forecastData;
 }
 
-json getGridCoordinates(HttpRequest* request, const Coordinates* coords){
+Office getOffice(HttpRequest* request, const Coordinates* coords){
     std::ostringstream url;
     url << "https://api.weather.gov/points/" 
          << coords->latitude << "," << coords->longitude;
 
     request->send(url.str());
-    json forecastData = request->getJsonResponse();
 
-    return forecastData;
+    json gridPointsData = request->getJsonResponse();
+    Office office(gridPointsData);
+
+    return office;
 }
 
+// TODO: handle 404s and other bad requests
 int main(int argc, char* argv[]) {
-
     ForecastParams params = getParams(argc, argv);
 
     // Get the grid points for the zip/address provided.
@@ -101,8 +102,11 @@ int main(int argc, char* argv[]) {
     }
     request.appendHeader("User-Agent", "adamploof@hotmail.com");
 
-    json forecastData = getForecastData(&request, "TOP", 31, 80);
-    Forecast forecast = Forecast(forecastData, "Bolton VT, 05401");
+    Coordinates coords = {44.389243, -72.887906};
+    Office office = getOffice(&request, &coords);
+
+    json forecastData = getForecastData(&request, &office);
+    Forecast forecast = Forecast(forecastData, office);
     forecast.printForecast();
 
     return 0;

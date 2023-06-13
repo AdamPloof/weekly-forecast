@@ -1,4 +1,5 @@
 #include "office.hpp"
+#include <iostream>
 
 namespace forecast {
     Office::Office(json gridPointsData) {
