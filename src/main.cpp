@@ -3,14 +3,12 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include "http_request.hpp"
-#include "forecast_params.hpp"
+#include "options.hpp"
 #include "forecast.hpp"
 #include "office.hpp"
 
 using namespace forecast;
 using namespace forecast::http_request;
-
-// static int verbose_flag;
 
 namespace {
     void help() {
@@ -19,17 +17,63 @@ namespace {
         exit(1);
     }
 
-    ForecastParams getParams(int argc, char* argv[]) {
-        const char* const shortOpts = "z:d:";
+    bool isFloat(std::string str) {
+        std::istringstream iss(str);
+        float f;
+
+        iss >> std::noskipws >> f;
+
+        return iss.eof() && !iss.fail();
+    }
+
+    Coordinates parseCoords(char* optarg) {
+        std::stringstream ss;
+        ss << optarg;
+        std::string coord;
+        Coordinates coords;
+
+        int idx = 0;
+        while (std::getline(ss, coord, ',')) {
+            if (isFloat(coord)) {
+                if (idx == 0) {
+                    coords.latitude = stof(coord);
+                } else if (idx == 1) {
+                    coords.longitude = stof(coord);
+                } else {
+                    // TODO: Too many coordinates. Throw invalid arguments error.
+                }
+                std::stof(coord);
+            } else {
+                // TODO: Throw some kind of an invalid argument error.
+            }
+
+            idx++;
+        }
+
+        return coords;
+    }
+
+    Options getOptions(int argc, char* argv[]) {
+        int verbosity = 0;
+        const char* const shortOpts = "c:d:vsl:a:r:h:";
         static struct option longOpts[] = {
-            {"zip", required_argument, nullptr, 'z'},
+            // Flags
+            {"verbose", no_argument, &verbosity, 2},
+            {"short", no_argument, &verbosity, 1},
+
+            // Args
+            {"coords", required_argument, nullptr, 'c'},
             {"days", required_argument, nullptr, 'd'},
+            {"location", required_argument, nullptr, 'l'},
+            {"add-location", required_argument, nullptr, 'a'},
+            {"remove-location", required_argument, nullptr, 'r'},
+            {"set-home", required_argument, nullptr, 'h'},
             {nullptr, 0, nullptr, 0}
         };
 
         int arg;
         int argIdx;
-        ForecastParams params;
+        Options opts;
         while (true) {
             arg = getopt_long(argc, argv, shortOpts, longOpts, &argIdx);
             if (arg == -1) {
@@ -37,13 +81,25 @@ namespace {
             }
             switch (arg) {
                 case 0:
-                    std::cout << "No flags to set, how did we get here?\n";
+                    // Flag set
                     break;
-                case 'z':
-                    params.zip = optarg;
+                case 'c':
+                    opts.coords = parseCoords(optarg);
                     break;
                 case 'd':
-                    params.days = std::stoi(optarg);
+                    opts.days = std::stoi(optarg);
+                    break;
+                case 'l':
+                    opts.location = optarg;
+                    break;
+                case 'a':
+                    opts.addLocation = optarg;
+                    break;
+                case 'r':
+                    opts.removeLocation = optarg;
+                    break;
+                case 'h':
+                    opts.setHome = optarg;
                     break;
                 case '?':
                     // Note that getopt_long already prints an error msg when this happens
@@ -57,7 +113,15 @@ namespace {
             }
         }
 
-        return params;
+        if (verbosity == 1) {
+            opts.verbosityLvl = Verbosity::LOW;
+        } else if (verbosity == 2) {
+            opts.verbosityLvl = Verbosity::HIGH;
+        } else {
+            opts.verbosityLvl = Verbosity::STD;
+        }
+
+        return opts;
     }
 }
 
@@ -89,7 +153,7 @@ Office getOffice(HttpRequest* request, const Coordinates* coords){
 
 // TODO: handle 404s and other bad requests
 int main(int argc, char* argv[]) {
-    ForecastParams params = getParams(argc, argv);
+    Options opts = getOptions(argc, argv);
 
     // Get the grid points for the zip/address provided.
 
@@ -102,8 +166,8 @@ int main(int argc, char* argv[]) {
     }
     request.appendHeader("User-Agent", "adamploof@hotmail.com");
 
-    Coordinates coords = {44.389243, -72.887906};
-    Office office = getOffice(&request, &coords);
+    // Coordinates coords = {44.389243, -72.887906};
+    Office office = getOffice(&request, &opts.coords);
 
     json forecastData = getForecastData(&request, &office);
     Forecast forecast = Forecast(forecastData, office);
