@@ -4,26 +4,62 @@
 #include <iostream>
 #include <vector>
 #include <nlohmann/json.hpp>
+#include <fstream>
 #include "location.hpp"
 #include "options.hpp"
 
+/**
+ * Reads and writes config from/to json file.
+ * 
+ * Config file structure:
+ * {
+ *   "locations": [
+ *     {<Location obj 1>},
+ * 	   {<Location obj 2>},
+ * 	   ...
+ * 	 ],
+ * 	 "defaultDays": <int>,
+ * 	 "defaultVerbosity": <int : 0 = STD, 1 = LOW, 2 = HIGH>,
+ *   "homeLocation": <string : name of location>
+ * }
+ * 
+ * Some assumptions/guarantees about the config file:
+ *   - If any of those keys are missing (or the file is empty), the config file is
+ *     considered empty and will not be loaded.
+ *   - The locations array will always contain at least one location.
+ *   - The home location will always be set, if there's only one location in the location array
+ *     then it will use that one's name.
+ * 
+*/
 namespace forecast {
     struct Config {
-        Location location;
+        Location* location;
         int days;
         Verbosity verbosity;
+
+        Config();
     };
 
     class ConfigManager {
         public:
             ConfigManager();
             ~ConfigManager();
+
+            Config* getActiveConfig();
+            void loadConfig();
+            void saveConfig(Config config);
         private:
-            Config m_activeConfig;
+            bool configIsValid(json configData);
+            void parseConfig(json configData);
+            void loadFallbackConfig();
+            void addLocation(json& locationData);
+            Location* getLocationByName(std::string locName);
+
+            Config* m_activeConfig;
             std::vector<Location> m_locations;
             int m_defaultDays;
             Verbosity m_defaultVerbosity;
-            Location m_homeLocation;
+            Location* m_homeLocation;
     };
 }
 

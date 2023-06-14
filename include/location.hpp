@@ -13,8 +13,9 @@ namespace forecast {
     };
 
     class Location {
-        public: 
+        public:
             Location(json gridPointsData);
+            Location();
             std::string name;
             std::string gridId;
             int gridX;
