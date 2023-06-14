@@ -1,5 +1,5 @@
-#ifndef OFFICE_H
-#define OFFICE_H
+#ifndef LOCATION_H
+#define LOCATION_H
 
 #include <string>
 #include <nlohmann/json.hpp>
@@ -12,9 +12,10 @@ namespace forecast {
         float longitude;
     };
 
-    class Office {
+    class Location {
         public: 
-            Office(json gridPointsData);
+            Location(json gridPointsData);
+            std::string name;
             std::string gridId;
             int gridX;
             int gridY;

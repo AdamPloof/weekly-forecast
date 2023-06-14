@@ -6,22 +6,21 @@
 #include <memory>
 #include <sstream>
 #include <nlohmann/json.hpp>
-#include "office.hpp"
+#include "location.hpp"
 
 using json = nlohmann::json;
 
 namespace forecast {
     class Forecast {
         public:
-            Forecast(const json forecastData, const Office office);
+            Forecast(const json forecastData, const Location location);
             void printForecast();
             // ~Forecast();
         
         private:
-            Office m_office;
+            Location m_location;
             std::string m_startDate;
             std::string m_endDate;
-            const std::string m_location;
             std::vector<json> m_periods;
 
             void makeHeader(std::ostringstream* output);

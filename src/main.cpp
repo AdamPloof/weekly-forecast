@@ -5,7 +5,7 @@
 #include "http_request.hpp"
 #include "options.hpp"
 #include "forecast.hpp"
-#include "office.hpp"
+#include "location.hpp"
 
 using namespace forecast;
 using namespace forecast::http_request;
@@ -90,7 +90,7 @@ namespace {
                     opts.days = std::stoi(optarg);
                     break;
                 case 'l':
-                    opts.location = optarg;
+                    opts.locationName = optarg;
                     break;
                 case 'a':
                     opts.addLocation = optarg;
@@ -125,11 +125,11 @@ namespace {
     }
 }
 
-json getForecastData(HttpRequest* request, Office* office) {
+json getForecastData(HttpRequest* request, Location* location) {
     std::ostringstream url;
     url << "https://api.weather.gov/gridpoints/" 
-        << office->gridId << "/"
-         << office->gridX << "," << office->gridY 
+        << location->gridId << "/"
+         << location->gridX << "," << location->gridY 
          << "/forecast";
 
     request->send(url.str());
@@ -138,7 +138,7 @@ json getForecastData(HttpRequest* request, Office* office) {
     return forecastData;
 }
 
-Office getOffice(HttpRequest* request, const Coordinates* coords){
+Location getLocation(HttpRequest* request, const Coordinates* coords){
     std::ostringstream url;
     url << "https://api.weather.gov/points/" 
          << coords->latitude << "," << coords->longitude;
@@ -146,31 +146,46 @@ Office getOffice(HttpRequest* request, const Coordinates* coords){
     request->send(url.str());
 
     json gridPointsData = request->getJsonResponse();
-    Office office(gridPointsData);
+    Location location(gridPointsData);
 
-    return office;
+    return location;
 }
 
 // TODO: handle 404s and other bad requests
 int main(int argc, char* argv[]) {
     Options opts = getOptions(argc, argv);
 
-    // Get the grid points for the zip/address provided.
+    /**
+     * Load default config
+     * Get command line options
+     * Check if command line options alter config
+     * Update config if needed
+     * Override default config with any command line options provided.
+     * 
+     * Note: if user provides coordinates, then use that for the location.
+     * If coordinates are provided, then prompt the user to see if they would like
+     * to save the location for future use. Maybe suggest a name based on the city or
+     * something like that.
+     *  
+    */
 
-    // Fetch the forecast for the grid points
+
     HttpRequest request = HttpRequest();
     request.init();
 
     if (request.getStatus() == clientStatus::ERROR) {
         // log error
     }
+
+    // TODO: set user agent from config, ClOptions
+    // Must be set on first run by user.
     request.appendHeader("User-Agent", "adamploof@hotmail.com");
 
     // Coordinates coords = {44.389243, -72.887906};
-    Office office = getOffice(&request, &opts.coords);
+    Location location = getLocation(&request, &opts.coords);
 
-    json forecastData = getForecastData(&request, &office);
-    Forecast forecast = Forecast(forecastData, office);
+    json forecastData = getForecastData(&request, &location);
+    Forecast forecast = Forecast(forecastData, location);
     forecast.printForecast();
 
     return 0;

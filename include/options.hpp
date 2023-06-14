@@ -2,7 +2,7 @@
 #define FORECAST_OPTS_H
 
 #include <string>
-#include "office.hpp"
+#include "location.hpp"
 
 namespace forecast {
     enum class Verbosity {
@@ -13,7 +13,7 @@ namespace forecast {
 
     struct Options {
         Coordinates coords;
-        std::string location;
+        std::string locationName;
         Verbosity verbosityLvl;
         int days;
         std::string addLocation;

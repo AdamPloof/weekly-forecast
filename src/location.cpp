@@ -1,8 +1,8 @@
-#include "office.hpp"
+#include "location.hpp"
 #include <iostream>
 
 namespace forecast {
-    Office::Office(json gridPointsData) {
+    Location::Location(json gridPointsData) : name("") {
         gridId = gridPointsData["properties"]["gridId"];
         gridX = gridPointsData["properties"]["gridX"];
         gridY = gridPointsData["properties"]["gridY"];
