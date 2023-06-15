@@ -14,7 +14,7 @@ namespace forecast {
     struct Options {
         Coordinates coords;
         std::string locationName;
-        Verbosity verbosityLvl;
+        Verbosity verbosity;
         int days;
         std::string addLocation;
         std::string removeLocation;

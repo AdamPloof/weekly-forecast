@@ -6,6 +6,7 @@
 #include "options.hpp"
 #include "forecast.hpp"
 #include "location.hpp"
+#include "config_manager.hpp"
 
 using namespace forecast;
 using namespace forecast::http_request;
@@ -114,11 +115,11 @@ namespace {
         }
 
         if (verbosity == 1) {
-            opts.verbosityLvl = Verbosity::LOW;
+            opts.verbosity = Verbosity::LOW;
         } else if (verbosity == 2) {
-            opts.verbosityLvl = Verbosity::HIGH;
+            opts.verbosity = Verbosity::HIGH;
         } else {
-            opts.verbosityLvl = Verbosity::STD;
+            opts.verbosity = Verbosity::STD;
         }
 
         return opts;
@@ -153,7 +154,23 @@ Location getLocation(HttpRequest* request, const Coordinates* coords){
 
 // TODO: handle 404s and other bad requests
 int main(int argc, char* argv[]) {
+    ConfigManager configManager;
+    configManager.loadConfig();
+    const Config* config = configManager.getConfig();
+
     Options opts = getOptions(argc, argv);
+
+    if (!opts.locationName.empty()) {
+        configManager.setLocation(opts.locationName);
+    }
+
+    if (config->verbosity != opts.verbosity) {
+        configManager.setVerbosity(opts.verbosity);
+    }
+
+    if (config->days != opts.days) {
+        configManager.setDays(opts.days);
+    }
 
     /**
      * Load default config

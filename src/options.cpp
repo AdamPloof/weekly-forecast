@@ -1,5 +1,8 @@
 #include <options.hpp>
 
 namespace forecast {
-    Options::Options() : verbosityLvl(Verbosity::STD), days(7) {};
+    Options::Options() : 
+        coords {0, 0},
+        verbosity(Verbosity::STD),
+        days(7) {};
 }

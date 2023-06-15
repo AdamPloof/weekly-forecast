@@ -43,19 +43,23 @@ namespace forecast {
     class ConfigManager {
         public:
             ConfigManager();
-            ~ConfigManager();
+            // ~ConfigManager();
 
-            Config* getActiveConfig();
+            const Config* getConfig();
             void loadConfig();
             void saveConfig(Config config);
+            void setDays(int days);
+            void setLocation(std::string locName);
+            void setVerbosity(Verbosity lvl);
         private:
             bool configIsValid(json configData);
             void parseConfig(json configData);
             void loadFallbackConfig();
             void addLocation(json& locationData);
+            bool inLocations(std::string locName);
             Location* getLocationByName(std::string locName);
 
-            Config* m_activeConfig;
+            Config m_activeConfig;
             std::vector<Location> m_locations;
             int m_defaultDays;
             Verbosity m_defaultVerbosity;

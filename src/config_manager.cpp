@@ -6,12 +6,12 @@ namespace forecast {
     Config::Config() :  location(nullptr), days(7), verbosity(Verbosity::STD) {};
 
     ConfigManager::ConfigManager() {
-        Config* m_activeConfig = new Config;
+        Config m_activeConfig;
         m_homeLocation = nullptr;
     }
 
-    Config* ConfigManager::getActiveConfig() {
-        return m_activeConfig;
+    const Config* ConfigManager::getConfig() {
+        return &m_activeConfig;
     }
 
     void ConfigManager::loadConfig() {
@@ -24,6 +24,31 @@ namespace forecast {
         } else {
             loadFallbackConfig();
         }
+
+        // Set the active config to defaults
+        m_activeConfig.days = m_defaultDays;
+        m_activeConfig.verbosity = m_defaultVerbosity;
+        m_activeConfig.location = m_homeLocation;
+    }
+
+    void ConfigManager::setDays(int days) {
+        if (days <= 7 && days > 0) {
+            m_activeConfig.days = days;
+        } else {
+            // Set an error flag for invalid number of days.
+        }
+    }
+
+    void ConfigManager::setLocation(std::string locName) {
+        if (inLocations(locName)) {
+            m_activeConfig.location = getLocationByName(locName);
+        } else {
+            // Set an error flag.
+        }
+    }
+
+    void ConfigManager::setVerbosity(Verbosity lvl) {
+        m_activeConfig.verbosity = lvl;
     }
 
     bool ConfigManager::configIsValid(json configData) {
@@ -58,7 +83,7 @@ namespace forecast {
         // make sure there's at least one location
         if (m_locations.size() == 0) {
             Location location = Location();
-            m_locations.push_back(location);            
+            m_locations.push_back(location);                    
         }
 
         int configVerbosity = configData["defaultVerbosity"];
@@ -105,6 +130,19 @@ namespace forecast {
         m_locations.push_back(location);
     }
 
+    // TODO: should probably normalize names: remove whitespace, lower case, etc.
+    bool ConfigManager::inLocations(std::string locName) {
+        bool found = false;
+        for (Location& loc : m_locations) {
+            if (loc.name == locName) {
+                found = true;
+                break;
+            }
+        }
+
+        return found;
+    }
+
     Location* ConfigManager::getLocationByName(std::string locName) {
         for (Location& loc : m_locations) {
             if (loc.name == locName) {
@@ -113,9 +151,5 @@ namespace forecast {
         }
 
         return &m_locations.front();
-    }
-
-    ConfigManager::~ConfigManager() {
-        delete m_activeConfig;
     }
 }
