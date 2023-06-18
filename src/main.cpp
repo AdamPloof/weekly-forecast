@@ -130,51 +130,51 @@ namespace {
 
         return opts;
     }
-}
 
-json getForecastData(HttpRequest* request, Location* location) {
-    std::ostringstream url;
-    url << "https://api.weather.gov/gridpoints/" 
-        << location->gridId << "/"
-         << location->gridX << "," << location->gridY 
-         << "/forecast";
+    json getForecastData(HttpRequest* request, Location* location) {
+        std::ostringstream url;
+        url << "https://api.weather.gov/gridpoints/" 
+            << location->gridId << "/"
+            << location->gridX << "," << location->gridY 
+            << "/forecast";
 
-    request->send(url.str());
-    json forecastData = request->getJsonResponse();
+        request->send(url.str());
+        json forecastData = request->getJsonResponse();
 
-    return forecastData;
-}
-
-Location getLocation(HttpRequest* request, const Coordinates* coords){
-    std::ostringstream url;
-    url << "https://api.weather.gov/points/" 
-         << coords->latitude << "," << coords->longitude;
-
-    request->send(url.str());
-
-    json gridPointsData = request->getJsonResponse();
-    Location location(gridPointsData);
-
-    return location;
-}
-
-void setConfigOptions(Options& opts, ConfigManager& configManager, HttpRequest& request)  {
-    const Config* config = configManager.getConfig();
-    if (opts.coords.isValid()) {
-        // Fetch location for coordinates.
-        // Coordinates coords = {44.389243, -72.887906};
-        Location location = getLocation(&request, &opts.coords);
-        configManager.setLocation(location);
-    } else if (!opts.locationName.empty()) {
-        configManager.setLocation(opts.locationName);
+        return forecastData;
     }
 
-    if (config->verbosity != opts.verbosity) {
-        configManager.setVerbosity(opts.verbosity);
+    Location getLocation(HttpRequest* request, const Coordinates* coords){
+        std::ostringstream url;
+        url << "https://api.weather.gov/points/" 
+            << coords->latitude << "," << coords->longitude;
+
+        request->send(url.str());
+
+        json gridPointsData = request->getJsonResponse();
+        Location location(gridPointsData);
+
+        return location;
     }
 
-    if (config->days != opts.days) {
-        configManager.setDays(opts.days);
+    void setConfigOptions(Options& opts, ConfigManager& configManager, HttpRequest& request)  {
+        const Config* config = configManager.getConfig();
+        if (opts.coords.isValid()) {
+            // Fetch location for coordinates.
+            // Coordinates coords = {44.389243, -72.887906};
+            Location location = getLocation(&request, &opts.coords);
+            configManager.setLocation(location);
+        } else if (!opts.locationName.empty()) {
+            configManager.setLocation(opts.locationName);
+        }
+
+        if (config->verbosity != opts.verbosity) {
+            configManager.setVerbosity(opts.verbosity);
+        }
+
+        if (config->days != opts.days) {
+            configManager.setDays(opts.days);
+        }
     }
 }
 
