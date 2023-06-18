@@ -10,6 +10,8 @@ namespace forecast {
     struct Coordinates {
         float latitude;
         float longitude;
+
+        bool isValid();
     };
 
     class Location {
@@ -25,6 +27,5 @@ namespace forecast {
             std::string state;
     };
 }
-
 
 #endif

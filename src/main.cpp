@@ -114,6 +114,12 @@ namespace {
             }
         }
 
+        if (opts.coords.isValid() && !opts.locationName.empty()) {
+            // TODO: error: must provide either coordinates or location name, not both.
+        } else if (!opts.coords.isValid() && opts.locationName.empty()) {
+            // TODO: error: must provide either coordinates or location name, none set.
+        }
+
         if (verbosity == 1) {
             opts.verbosity = Verbosity::LOW;
         } else if (verbosity == 2) {
@@ -152,15 +158,14 @@ Location getLocation(HttpRequest* request, const Coordinates* coords){
     return location;
 }
 
-// TODO: handle 404s and other bad requests
-int main(int argc, char* argv[]) {
-    ConfigManager configManager;
-    configManager.loadConfig();
+void setConfigOptions(Options& opts, ConfigManager& configManager, HttpRequest& request)  {
     const Config* config = configManager.getConfig();
-
-    Options opts = getOptions(argc, argv);
-
-    if (!opts.locationName.empty()) {
+    if (opts.coords.isValid()) {
+        // Fetch location for coordinates.
+        // Coordinates coords = {44.389243, -72.887906};
+        Location location = getLocation(&request, &opts.coords);
+        configManager.setLocation(location);
+    } else if (!opts.locationName.empty()) {
         configManager.setLocation(opts.locationName);
     }
 
@@ -171,21 +176,27 @@ int main(int argc, char* argv[]) {
     if (config->days != opts.days) {
         configManager.setDays(opts.days);
     }
+}
 
-    /**
-     * Load default config
-     * Get command line options
-     * Check if command line options alter config
-     * Update config if needed
-     * Override default config with any command line options provided.
-     * 
-     * Note: if user provides coordinates, then use that for the location.
-     * If coordinates are provided, then prompt the user to see if they would like
-     * to save the location for future use. Maybe suggest a name based on the city or
-     * something like that.
-     *  
-    */
-
+/**
+ * Load default config
+ * Get command line options
+ * Check if command line options alter config
+ * Update config if needed
+ * Override default config with any command line options provided.
+ * 
+ * Note: if user provides coordinates, then use that for the location.
+ * If coordinates are provided, then prompt the user to see if they would like
+ * to save the location for future use. Maybe suggest a name based on the city or
+ * something like that.
+ * 
+ * TODO: handle 404s and other bad requests
+ *  
+*/
+int main(int argc, char* argv[]) {
+    Options opts = getOptions(argc, argv);
+    ConfigManager configManager;
+    configManager.loadConfig();
 
     HttpRequest request = HttpRequest();
     request.init();
@@ -198,11 +209,11 @@ int main(int argc, char* argv[]) {
     // Must be set on first run by user.
     request.appendHeader("User-Agent", "adamploof@hotmail.com");
 
-    // Coordinates coords = {44.389243, -72.887906};
-    Location location = getLocation(&request, &opts.coords);
+    setConfigOptions(opts, configManager, request);
+    const Config* config = configManager.getConfig();
 
-    json forecastData = getForecastData(&request, &location);
-    Forecast forecast = Forecast(forecastData, location);
+    json forecastData = getForecastData(&request, config->location);
+    Forecast forecast = Forecast(forecastData, config->location);
     forecast.printForecast();
 
     return 0;

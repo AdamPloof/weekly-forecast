@@ -47,6 +47,11 @@ namespace forecast {
         }
     }
 
+    void ConfigManager::setLocation(Location loc) {
+        m_locations.push_back(loc);
+        m_activeConfig.location = &m_locations.back();
+    }
+
     void ConfigManager::setVerbosity(Verbosity lvl) {
         m_activeConfig.verbosity = lvl;
     }

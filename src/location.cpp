@@ -2,6 +2,10 @@
 #include <iostream>
 
 namespace forecast {
+    bool Coordinates::isValid() {
+        return latitude != 0 && longitude != 0;
+    }
+
     Location::Location(json gridPointsData) : name("") {
         gridId = gridPointsData["properties"]["gridId"];
         gridX = gridPointsData["properties"]["gridX"];

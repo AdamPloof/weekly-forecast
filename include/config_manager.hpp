@@ -50,6 +50,7 @@ namespace forecast {
             void saveConfig(Config config);
             void setDays(int days);
             void setLocation(std::string locName);
+            void setLocation(Location loc);
             void setVerbosity(Verbosity lvl);
         private:
             bool configIsValid(json configData);

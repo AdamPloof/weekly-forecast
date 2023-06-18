@@ -13,12 +13,12 @@ using json = nlohmann::json;
 namespace forecast {
     class Forecast {
         public:
-            Forecast(const json forecastData, const Location location);
+            Forecast(const json forecastData, const Location* location);
             void printForecast();
             // ~Forecast();
         
         private:
-            Location m_location;
+            const Location* m_location;
             std::string m_startDate;
             std::string m_endDate;
             std::vector<json> m_periods;

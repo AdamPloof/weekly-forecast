@@ -8,7 +8,7 @@
 using json = nlohmann::json;
 
 namespace forecast {
-    Forecast::Forecast(const json forecastData, const Location location) : m_location(location) {
+    Forecast::Forecast(const json forecastData, const Location* location) : m_location(location) {
         const json periods = forecastData["properties"]["periods"];
         for (const json& period : periods) {
             m_periods.push_back(period);
@@ -39,7 +39,7 @@ namespace forecast {
     void Forecast::makeHeader(std::ostringstream* output) {
         *output << makeTitle() << "\n";
         *output << m_startDate << " - " << m_endDate << "\n";
-        *output << m_location.city << ", " << m_location.state;
+        *output << m_location->city << ", " << m_location->state;
 
         *output << makeDivider(true);
     }
