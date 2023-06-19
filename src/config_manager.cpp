@@ -31,6 +31,12 @@ namespace forecast {
         m_activeConfig.location = m_homeLocation;
     }
 
+    void ConfigManager::saveConfig() {
+        std::ofstream configFile = std::ofstream("config.json", std::ios::trunc);
+        configFile << std::setw(4) << serializeConfig() << std::endl;
+        configFile.close();
+    }
+
     void ConfigManager::setDays(int days) {
         if (days <= 7 && days > 0) {
             m_activeConfig.days = days;
@@ -47,6 +53,7 @@ namespace forecast {
         }
     }
 
+    // TODO: indicate that the location is temporary and shouldn't be saved with config file
     void ConfigManager::setLocation(Location loc) {
         m_locations.push_back(loc);
         m_activeConfig.location = &m_locations.back();
@@ -146,6 +153,36 @@ namespace forecast {
         }
 
         return found;
+    }
+
+    json ConfigManager::serializeConfig() {
+        json config;
+        config["defaultDays"] = m_defaultDays;
+        config["defaultVerbosity"] = m_defaultVerbosity;
+        config["homeLocation"] = locationToJson(m_homeLocation);
+
+        json locations;
+        for (const Location& loc : m_locations) {
+            locations.push_back(locationToJson(&loc));
+        }
+
+        config["locations"] = locations;
+
+        return config;
+    }
+
+    json ConfigManager::locationToJson(const Location* loc) {
+        json j;
+        j["name"] = loc->name;
+        j["gridId"] = loc->gridId;
+        j["gridX"] = loc->gridX;
+        j["gridY"] = loc->gridY;
+        j["city"] = loc->city;
+        j["state"] = loc->state;
+        j["coords"]["latitude"] = loc->coords.latitude;
+        j["coords"]["longitude"] = loc->coords.longitude;
+
+        return j;
     }
 
     Location* ConfigManager::getLocationByName(std::string locName) {

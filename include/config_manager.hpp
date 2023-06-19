@@ -20,7 +20,8 @@
  * 	 ],
  * 	 "defaultDays": <int>,
  * 	 "defaultVerbosity": <int : 0 = STD, 1 = LOW, 2 = HIGH>,
- *   "homeLocation": <string : name of location>
+ *   "homeLocation": <string : name of location>,
+ *   "user_agent": <std::string : user's email>
  * }
  * 
  * Some assumptions/guarantees about the config file:
@@ -47,7 +48,7 @@ namespace forecast {
 
             const Config* getConfig();
             void loadConfig();
-            void saveConfig(Config config);
+            void saveConfig();
             void setDays(int days);
             void setLocation(std::string locName);
             void setLocation(Location loc);
@@ -59,6 +60,8 @@ namespace forecast {
             void addLocation(json& locationData);
             bool inLocations(std::string locName);
             Location* getLocationByName(std::string locName);
+            json serializeConfig();
+            json locationToJson(const Location* loc);
 
             Config m_activeConfig;
             std::vector<Location> m_locations;

@@ -216,5 +216,7 @@ int main(int argc, char* argv[]) {
     Forecast forecast = Forecast(forecastData, config->location);
     forecast.printForecast();
 
+    configManager.saveConfig();
+
     return 0;
 }
