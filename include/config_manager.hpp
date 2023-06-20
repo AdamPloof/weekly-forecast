@@ -53,6 +53,10 @@ namespace forecast {
             void setLocation(std::string locName);
             void setLocation(Location loc);
             void setVerbosity(Verbosity lvl);
+
+            static const std::string CONFIG_FILENAME;
+            static const std::string DEFAULT_LOC_NAME;
+            static const std::string TEMP_LOC_NAME;
         private:
             bool configIsValid(json configData);
             void parseConfig(json configData);

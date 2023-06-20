@@ -10,13 +10,17 @@ namespace forecast {
         m_homeLocation = nullptr;
     }
 
+    const std::string ConfigManager::CONFIG_FILENAME = "config.json";
+    const std::string ConfigManager::DEFAULT_LOC_NAME = "app_default";
+    const std::string ConfigManager::TEMP_LOC_NAME = "temp";
+
     const Config* ConfigManager::getConfig() {
         return &m_activeConfig;
     }
 
     void ConfigManager::loadConfig() {
         std::ifstream handle;
-        handle.open("config.json");
+        handle.open(ConfigManager::CONFIG_FILENAME);
         if (handle.is_open()) {
             json configData = json::parse(handle);
             parseConfig(configData);
@@ -32,7 +36,7 @@ namespace forecast {
     }
 
     void ConfigManager::saveConfig() {
-        std::ofstream configFile = std::ofstream("config.json", std::ios::trunc);
+        std::ofstream configFile = std::ofstream(ConfigManager::CONFIG_FILENAME, std::ios::trunc);
         configFile << std::setw(4) << serializeConfig() << std::endl;
         configFile.close();
     }
@@ -53,8 +57,10 @@ namespace forecast {
         }
     }
 
-    // TODO: indicate that the location is temporary and shouldn't be saved with config file
+    // Setting location directly is only allowed for temporary locations that
+    // will not be stored in the config file.
     void ConfigManager::setLocation(Location loc) {
+        loc.name = ConfigManager::TEMP_LOC_NAME;
         m_locations.push_back(loc);
         m_activeConfig.location = &m_locations.back();
     }
@@ -89,12 +95,14 @@ namespace forecast {
         }
 
         for (json& loc : configData["locations"]) {
+            // TODO: this conflicts with the "by coordinates" style way of
+            // creating a location. Maybe need a separate constructor?.
             addLocation(loc);
         }
 
         // make sure there's at least one location
         if (m_locations.size() == 0) {
-            Location location = Location();
+            Location location = Location(ConfigManager::DEFAULT_LOC_NAME);
             m_locations.push_back(location);                    
         }
 
@@ -118,7 +126,7 @@ namespace forecast {
     // Sets default config options in case there's an invalid config file
     void ConfigManager::loadFallbackConfig() {
         if (m_locations.size() == 0) {
-            Location location = Location();
+            Location location = Location(ConfigManager::DEFAULT_LOC_NAME);
             m_locations.push_back(location);
         }
 
@@ -128,8 +136,7 @@ namespace forecast {
     }
 
     void ConfigManager::addLocation(json& locationData) {
-        Location location;
-        location.name = locationData["name"];
+        Location location = Location(locationData["name"]);
         location.gridId = locationData["gridId"];
         location.gridX = locationData["gridX"];
         location.gridY = locationData["gridY"];
@@ -161,9 +168,11 @@ namespace forecast {
         config["defaultVerbosity"] = m_defaultVerbosity;
         config["homeLocation"] = locationToJson(m_homeLocation);
 
-        json locations;
+        json locations = json::array();
         for (const Location& loc : m_locations) {
-            locations.push_back(locationToJson(&loc));
+            if (loc.name != ConfigManager::DEFAULT_LOC_NAME && loc.name != ConfigManager::TEMP_LOC_NAME) {
+                locations.push_back(locationToJson(&loc));
+            }
         }
 
         config["locations"] = locations;
@@ -185,6 +194,8 @@ namespace forecast {
         return j;
     }
 
+    // If no home location is set, then just return the first location in the list.
+    // By this point, there should always be at least one in the locations list.
     Location* ConfigManager::getLocationByName(std::string locName) {
         for (Location& loc : m_locations) {
             if (loc.name == locName) {
