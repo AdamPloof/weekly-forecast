@@ -7,7 +7,7 @@ namespace forecast {
     }
 
     // TODO: I think a name ought to be mandatory for "coordinates" constructed locations
-    Location::Location(json gridPointsData) : name("") {
+    Location::Location(json gridPointsData, std::string locName) : name(locName) {
         // name = "busted";
 
         gridId = gridPointsData["properties"]["gridId"];

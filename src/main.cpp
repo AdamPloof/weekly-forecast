@@ -152,7 +152,7 @@ namespace {
         request->send(url.str());
 
         json gridPointsData = request->getJsonResponse();
-        Location location(gridPointsData);
+        Location location(gridPointsData, ConfigManager::TEMP_LOC_NAME);
 
         return location;
     }
@@ -163,6 +163,10 @@ namespace {
             // Fetch location for coordinates.
             // Coordinates coords = {44.389243, -72.887906};
             Location location = getLocation(&request, &opts.coords);
+            if (!opts.addLocation.empty()) {
+                location.name = opts.addLocation;
+            }
+
             configManager.setLocation(location);
         } else if (!opts.locationName.empty()) {
             configManager.setLocation(opts.locationName);

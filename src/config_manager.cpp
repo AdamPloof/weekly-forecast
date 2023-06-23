@@ -57,10 +57,7 @@ namespace forecast {
         }
     }
 
-    // Setting location directly is only allowed for temporary locations that
-    // will not be stored in the config file.
     void ConfigManager::setLocation(Location loc) {
-        loc.name = ConfigManager::TEMP_LOC_NAME;
         m_locations.push_back(loc);
         m_activeConfig.location = &m_locations.back();
     }
