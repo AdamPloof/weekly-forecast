@@ -95,8 +95,6 @@ namespace forecast {
         }
 
         for (json& loc : configData["locations"]) {
-            // TODO: this conflicts with the "by coordinates" style way of
-            // creating a location. Maybe need a separate constructor?.
             addLocation(loc);
         }
 
@@ -136,7 +134,9 @@ namespace forecast {
     }
 
     void ConfigManager::addLocation(json& locationData) {
-        Location location = Location(locationData["name"]);
+        std::string locName = locationData["name"];
+        Location location = Location(locName);
+
         location.gridId = locationData["gridId"];
         location.gridX = locationData["gridX"];
         location.gridY = locationData["gridY"];
@@ -166,7 +166,7 @@ namespace forecast {
         json config;
         config["defaultDays"] = m_defaultDays;
         config["defaultVerbosity"] = m_defaultVerbosity;
-        config["homeLocation"] = locationToJson(m_homeLocation);
+        config["homeLocation"] = m_homeLocation->name;
 
         json locations = json::array();
         for (const Location& loc : m_locations) {
