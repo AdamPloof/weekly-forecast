@@ -18,11 +18,18 @@ namespace forecast {
         m_endDate = m_periods.back()["endTime"];
     }
 
-    void Forecast::printForecast() {
+    void Forecast::printForecast(const int days) {
         std::ostringstream output;
         makeHeader(&output);
 
+        // Remember, there's two periods per day.
+        int periodNum = 1;
+        int maxPeriods = days * 2;
         for (const json& period : m_periods) {
+            if (periodNum >= maxPeriods && period["isDaytime"] == true) {
+                break;
+            }
+
             makePeriod(&output, period);
 
             // Separate dates by long dividers, day and night by short dividers.
@@ -31,11 +38,14 @@ namespace forecast {
             } else {
                 output << makeDivider();
             }
+
+            periodNum++;
         }
 
         std::cout << output.str() << std::endl;
     }
 
+    // TODO: format date
     void Forecast::makeHeader(std::ostringstream* output) {
         *output << makeTitle() << "\n";
         *output << m_startDate << " - " << m_endDate << "\n";

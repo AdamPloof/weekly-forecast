@@ -10,8 +10,11 @@ namespace forecast {
     }
 
     const std::string ConfigManager::CONFIG_FILENAME = "config.json";
-    const std::string ConfigManager::DEFAULT_LOC_NAME = "app_default";
-    const std::string ConfigManager::TEMP_LOC_NAME = "temp";
+
+    // Kinda silly, but throwing on a few extra chars so the user doesn't by chance use one of these names
+    // since they won't be saved if they do.
+    const std::string ConfigManager::DEFAULT_LOC_NAME = "app_default_x2340";
+    const std::string ConfigManager::TEMP_LOC_NAME = "temp_abc234";
 
     const Config* ConfigManager::getConfig() {
         return &m_activeConfig;
@@ -143,6 +146,44 @@ namespace forecast {
         location.coords = coords;
 
         m_locations.push_back(location);
+    }
+
+    // TODO: return error if locName not in locations
+    void ConfigManager::setHomeLocation(std::string locName) {
+        for (Location& loc : m_locations) {
+            if (loc.name == locName) {
+                m_homeName = locName;
+                break;
+            }
+        }
+
+        // return // some kind of error here;
+    }
+
+    // TODO: return error if locName not in locations
+    void ConfigManager::removeLocation(std::string locName) {
+        if (locName == ConfigManager::DEFAULT_LOC_NAME) {
+            // TODO: Warn the user that they shouldn't try this.
+            return;
+        }
+
+        if (locName == m_activeConfig.location->name) {
+            // Make sure we don't remove the active location without swapping it for something else.
+            Location location = Location(ConfigManager::DEFAULT_LOC_NAME);
+            m_locations.push_back(location);
+            m_activeConfig.location = &m_locations.back();
+
+            // TODO: Warn the user that they just removed the active location.
+        }
+
+        for (int i = 0; i < m_locations.size(); i++) {
+            if (m_locations[i].name == locName) {
+                m_locations.erase(m_locations.begin() + i);
+                break;
+            }
+        }
+
+        // return // some kind of error here;
     }
 
     // TODO: should probably normalize names: remove whitespace, lower case, etc.

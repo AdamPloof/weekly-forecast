@@ -159,11 +159,15 @@ namespace {
 
     void setConfigOptions(Options& opts, ConfigManager& configManager, HttpRequest& request)  {
         const Config* config = configManager.getConfig();
+
+        // TODO: if both coordinates and a name are provided warn that the name is ignored and coords
+        // are used.
         if (opts.coords.isValid()) {
             // Fetch location for coordinates.
             // Coordinates coords = {44.389243, -72.887906};
             Location location = getLocation(&request, &opts.coords);
             if (!opts.addLocation.empty()) {
+                // TODO: warn user that they need to provide coordinates if they try to add a loc without them.
                 location.name = opts.addLocation;
             }
 
@@ -218,7 +222,7 @@ int main(int argc, char* argv[]) {
 
     json forecastData = getForecastData(&request, config->location);
     Forecast forecast = Forecast(forecastData, config->location);
-    forecast.printForecast();
+    forecast.printForecast(config->days);
 
     configManager.saveConfig();
 

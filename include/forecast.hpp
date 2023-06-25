@@ -14,7 +14,7 @@ namespace forecast {
     class Forecast {
         public:
             Forecast(const json forecastData, const Location* location);
-            void printForecast();
+            void printForecast(int days);
             // ~Forecast();
         
         private:
