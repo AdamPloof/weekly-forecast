@@ -71,7 +71,7 @@ namespace forecast {
             std::vector<Location> m_locations;
             int m_defaultDays;
             Verbosity m_defaultVerbosity;
-            Location* m_homeLocation;
+            std::string m_homeName;
     };
 }
 

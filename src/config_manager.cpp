@@ -7,7 +7,6 @@ namespace forecast {
 
     ConfigManager::ConfigManager() {
         Config m_activeConfig;
-        m_homeLocation = nullptr;
     }
 
     const std::string ConfigManager::CONFIG_FILENAME = "config.json";
@@ -32,7 +31,7 @@ namespace forecast {
         // Set the active config to defaults
         m_activeConfig.days = m_defaultDays;
         m_activeConfig.verbosity = m_defaultVerbosity;
-        m_activeConfig.location = m_homeLocation;
+        m_activeConfig.location = getLocationByName(m_homeName);
     }
 
     void ConfigManager::saveConfig() {
@@ -114,7 +113,7 @@ namespace forecast {
         }
 
         // Note: make sure to set the homeLocation *after* adding all locations!
-        m_homeLocation = getLocationByName(configData["homeLocation"]);
+        m_homeName = configData["homeLocation"];
         m_defaultDays = configData["defaultDays"];
     }
 
@@ -125,7 +124,7 @@ namespace forecast {
             m_locations.push_back(location);
         }
 
-        m_homeLocation = &m_locations.front();
+        m_homeName = m_locations.front().name;
         m_defaultDays = 7;
         m_defaultVerbosity = Verbosity::STD;
     }
@@ -163,7 +162,7 @@ namespace forecast {
         json config;
         config["defaultDays"] = m_defaultDays;
         config["defaultVerbosity"] = m_defaultVerbosity;
-        config["homeLocation"] = m_homeLocation->name;
+        config["homeLocation"] = m_homeName;
 
         json locations = json::array();
         for (const Location& loc : m_locations) {
