@@ -1,4 +1,5 @@
 #include "config_manager.hpp"
+#include "utils.hpp"
 
 using json = nlohmann::json;
 
@@ -150,8 +151,9 @@ namespace forecast {
 
     // TODO: return error if locName not in locations
     void ConfigManager::setHomeLocation(std::string locName) {
+        locName = strToLower(locName);
         for (Location& loc : m_locations) {
-            if (loc.name == locName) {
+            if (strToLower(loc.name) == locName) {
                 m_homeName = locName;
                 break;
             }
@@ -189,8 +191,9 @@ namespace forecast {
     // TODO: should probably normalize names: remove whitespace, lower case, etc.
     bool ConfigManager::inLocations(std::string locName) {
         bool found = false;
+        locName = strToLower(locName);
         for (Location& loc : m_locations) {
-            if (loc.name == locName) {
+            if (strToLower(loc.name) == locName) {
                 found = true;
                 break;
             }
@@ -234,8 +237,9 @@ namespace forecast {
     // If no home location is set, then just return the first location in the list.
     // By this point, there should always be at least one in the locations list.
     Location* ConfigManager::getLocationByName(std::string locName) {
+        locName = strToLower(locName);
         for (Location& loc : m_locations) {
-            if (loc.name == locName) {
+            if (strToLower(loc.name) == locName) {
                 return &loc;
             }
         }

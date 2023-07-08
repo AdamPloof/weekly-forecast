@@ -159,6 +159,14 @@ namespace {
 
     void setConfigOptions(Options& opts, ConfigManager& configManager, HttpRequest& request)  {
         const Config* config = configManager.getConfig();
+        if (!opts.setHome.empty()) {
+            configManager.setHomeLocation(opts.setHome);
+
+            // Use the new home location as the location is one is not explicitly provided.
+            if (opts.locationName.empty()) {
+                configManager.setLocation(opts.setHome);
+            }
+        }
 
         // TODO: if both coordinates and a name are provided warn that the name is ignored and coords
         // are used.
