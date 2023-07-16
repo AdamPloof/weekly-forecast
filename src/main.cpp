@@ -7,6 +7,8 @@
 #include "forecast.hpp"
 #include "location.hpp"
 #include "config_manager.hpp"
+#include "output_interface.hpp"
+#include "row_printer.hpp"
 
 using namespace forecast;
 using namespace forecast::http_request;
@@ -230,7 +232,9 @@ int main(int argc, char* argv[]) {
 
     json forecastData = getForecastData(&request, config->location);
     Forecast forecast = Forecast(forecastData, config->location);
-    forecast.printForecast(config->days);
+
+    RowPrinter printer = RowPrinter();
+    forecast.render(&printer, config->days);
 
     configManager.saveConfig();
 

@@ -1,11 +1,12 @@
-#ifndef PRINTER_H
-#define PRINTER_H
+#ifndef GRID_PRINTER_H
+#define GRID_PRINTER_H
 
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <nlohmann/json.hpp>
 #include "forecast.hpp"
+#include "output_interface.hpp"
 
 /**
  * Process for printing a forecast in a grid format:
@@ -39,10 +40,10 @@
 */
 
 namespace forecast {
-    class Printer {
+    class GridPrinter : public OutputInterface {
         public:
-            Printer();
-            void print(Forecast forecast);
+            GridPrinter();
+            void render(Forecast* forecast, int days) override;
 
         private:
             void header();
