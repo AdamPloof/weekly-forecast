@@ -7,11 +7,12 @@
 #include <sstream>
 #include <nlohmann/json.hpp>
 #include "location.hpp"
-#include "output_interface.hpp"
 
 using json = nlohmann::json;
 
 namespace forecast {
+    class OutputInterface;
+
     class Forecast {
         public:
             Forecast(const json forecastData, const Location* location);

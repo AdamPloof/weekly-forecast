@@ -4,6 +4,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include "forecast.hpp"
+#include "output_interface.hpp"
 
 using json = nlohmann::json;
 
@@ -35,7 +36,6 @@ namespace forecast {
     }
 
     void Forecast::render(OutputInterface* renderer, int days) {
-        std::cout << "test" << std::endl;
-        // renderer->render(this, days);
+        renderer->render(this, days);
     }
 }

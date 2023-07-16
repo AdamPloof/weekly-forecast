@@ -1,9 +1,9 @@
 #ifndef OUTPUT_INTERFACE_H
 #define OUTPUT_INTERFACE_H
 
-#include "forecast.hpp"
-
 namespace forecast {
+    class Forecast;
+
     // Defining a generic interface here in case one day I want to have multiple styles of output.
     class OutputInterface {
         public:
