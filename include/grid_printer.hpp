@@ -44,15 +44,17 @@ namespace forecast {
         public:
             GridPrinter();
             void render(Forecast* forecast, int days) override;
+            const std::ostringstream& getOutput();
 
         private:
-            void header();
-            void title();
+            void xBorderMain();
+            void xBorderSecondary();
+            void borderY();
             void period();
             void border();
             void lineBreak();
 
-            std::ostringstream output;
+            std::ostringstream m_output;
     };
 }
 
