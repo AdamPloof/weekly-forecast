@@ -178,7 +178,7 @@ namespace forecast {
             // TODO: Warn the user that they just removed the active location.
         }
 
-        for (int i = 0; i < m_locations.size(); i++) {
+        for (std::vector<int>::size_type i = 0; i < m_locations.size(); i++) {
             if (m_locations[i].name == locName) {
                 m_locations.erase(m_locations.begin() + i);
                 break;

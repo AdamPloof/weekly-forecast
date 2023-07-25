@@ -112,6 +112,7 @@ namespace {
                     std::cout << "Did not recognize argument: " << arg << std::endl;
                     break;
                 default:
+                    help();
                     abort();
             }
         }

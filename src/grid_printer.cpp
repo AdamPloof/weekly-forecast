@@ -4,7 +4,8 @@ namespace forecast {
     GridPrinter::GridPrinter() {}
 
     void GridPrinter::render(Forecast* forecast, int days) {
-        
+        std::cout << days << std::endl;
+        std::cout << forecast->getEndDate() << std::endl;
     }
 
     const std::ostringstream& GridPrinter::getOutput() {
