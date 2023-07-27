@@ -19,6 +19,8 @@ namespace test::grid_printer {
                 std::istringstream input;
                 input.str(output.str());
 
+                std::cout << width << std::endl;
+
                 for (std::string line; std::getline(input, line, '\n'); ) {
                     ASSERT_TRUE((line.length() == m_lineWidth), "Line width is not 129");
                 }
@@ -29,8 +31,10 @@ namespace test::grid_printer {
 }
 
 
-int main(int argc, char* argv[]) {
+int main() {
     GridPrinter printer;
+
+    std::cout << "testing" <<std::endl;
 
     return 0;
 }

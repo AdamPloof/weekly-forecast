@@ -174,7 +174,6 @@ namespace forecast {
             Location location = Location(ConfigManager::DEFAULT_LOC_NAME);
             m_locations.push_back(location);
             m_activeConfig.location = &m_locations.back();
-
             // TODO: Warn the user that they just removed the active location.
         }
 
