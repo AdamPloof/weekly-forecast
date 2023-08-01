@@ -4,14 +4,21 @@ namespace forecast {
     GridPrinter::GridPrinter() {}
 
     void GridPrinter::render(Forecast* forecast, int days) {
-        std::cout << days << std::endl;
-        std::cout << forecast->getEndDate() << std::endl;
-    }
+        // Placeholders using member vars
+        if (forecast->getEndDate().empty()) {
 
-    const std::ostringstream& GridPrinter::getOutput() {
+        }
+
+        if (days > 0) {
+
+        }
+
+
         xBorderMain();
         xBorderSecondary();
+    }
 
+    const std::ostringstream& GridPrinter::getOutput() const {
         return m_output;
     }
 
@@ -35,9 +42,8 @@ namespace forecast {
             } else if ((i + 1) % 2 == 0) {
                 m_output << " =";
             }
-
-            m_output << "\n";
         }
 
+        m_output << "\n";
     }
 }

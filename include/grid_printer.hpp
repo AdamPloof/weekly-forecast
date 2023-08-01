@@ -44,7 +44,7 @@ namespace forecast {
         public:
             GridPrinter();
             void render(Forecast* forecast, int days) override;
-            const std::ostringstream& getOutput();
+            const std::ostringstream& getOutput() const;
 
         private:
             void xBorderMain();
