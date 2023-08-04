@@ -42,6 +42,8 @@
 namespace forecast {
     class GridPrinter : public OutputInterface {
         public:
+            static const int lineWidth;
+
             GridPrinter();
             void render(Forecast* forecast, int days) override;
             const std::ostringstream& getOutput() const;
@@ -49,9 +51,10 @@ namespace forecast {
         private:
             void xBorderMain();
             void xBorderSecondary();
-            void borderY();
-            void period();
-            void border();
+            void borderY(bool trailingSpace = false);
+            void makeFullDay(const json& day, const json& night);
+            void makeFullDay(const json& night);
+            std::string padLine(std::string line);
             void lineBreak();
 
             std::ostringstream m_output;
