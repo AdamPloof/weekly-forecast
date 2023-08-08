@@ -6,29 +6,34 @@ namespace forecast {
     GridPrinter::GridPrinter() {}
 
     void GridPrinter::render(Forecast* forecast, int days) {
-        // Placeholders using member vars
-
-        if (days > 0) {
-
-        }
-
-
         xBorderMain();
 
         // Remember, there's two periods per day. But it's possible the first period is night time.
-        int periodNum = 1;
-        int maxPeriods = days * 2;
-        const std::vector<json>* periods = forecast->getPeriods();
-        for (size_t i = 0; i < periods->size(); i += 2) {
-            const json& period = periods[i];
-            if (period["isDaytime"] == true) {
-                makeFullDay(periods[i], periods[i + 1]);
-            } else {
-                makeFullDay(periods[i]);
+        // Also note that we advance either by 1 period or two depending on whether the first period is
+        // day or night
+        int dayNum = 1;
+        const std::vector<json> periods = *forecast->getPeriods();
+        for (size_t i = 0; i < periods.size(); ) {
+            if (dayNum > days) {
+                break;
             }
+
+            const json& period = periods[i];
+            std::string temp = period.dump();
+            if (period["isDaytime"] == true) {
+                makeDay(periods[i], periods[i + 1]);
+                i += 2;
+            } else {
+                makeDay(periods[i]);
+                i += 1;
+            }
+
+            dayNum++;
         }
 
         xBorderSecondary();
+
+        std::cout << m_output.str() << std::endl;
     }
 
     const std::ostringstream& GridPrinter::getOutput() const {
@@ -60,15 +65,21 @@ namespace forecast {
         m_output << "\n";
     }
 
-    void GridPrinter::makeFullDay(const json& day, const json& night) {
+    // Note: makeDay refers to a *full* day, i.e. a day and a night period.
+    void GridPrinter::makeDay(const json& day, const json& night) {
         // Name
         std::string nameD = padLine(day["name"]);
         std::string nameN = padLine(night["name"]);
         m_output << borderY(true) << nameD << borderY(true) << nameN << borderY();
+        m_output << '\n';
     }
 
-    void GridPrinter::makeFullDay(const json& night) {
-        borderY();
+    void GridPrinter::makeDay(const json& night) {
+        // Name
+        std::string nameD = padLine(" ");
+        std::string nameN = padLine(night["name"]);
+        m_output << borderY(true) << nameD << borderY(true) << nameN << borderY();
+        m_output << '\n';
     }
 
     std::string GridPrinter::borderY(bool trailingSpace) {
@@ -79,12 +90,13 @@ namespace forecast {
         }
     }
 
-    // Note technically a full line, but the line of a single period. Basically,
-    // half a line.
-    std::string GridPrinter::padLine(std::string line) {
-        int padAmt = ((GridPrinter::lineWidth - 1) / 2) - (3 + line.length());
+    // Not technically a full line, but the line of a single period.
+    // Basically, half a line.
+    std::string GridPrinter::padLine(const std::string line) {
+        int padAmt = ((GridPrinter::lineWidth - 1) / 2) - (2 + line.length());
         std::string padding = std::string(padAmt, ' ');
+        std::string padded = line + padding;
 
-        return line.append(padding);
+        return padded;
     }
 }

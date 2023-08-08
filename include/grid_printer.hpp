@@ -51,9 +51,9 @@ namespace forecast {
         private:
             void xBorderMain();
             void xBorderSecondary();
-            void borderY(bool trailingSpace = false);
-            void makeFullDay(const json& day, const json& night);
-            void makeFullDay(const json& night);
+            std::string borderY(bool trailingSpace = false);
+            void makeDay(const json& day, const json& night);
+            void makeDay(const json& night);
             std::string padLine(std::string line);
             void lineBreak();
 
