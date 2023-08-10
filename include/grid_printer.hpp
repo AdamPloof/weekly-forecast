@@ -54,6 +54,7 @@ namespace forecast {
             std::string borderY(bool trailingSpace = false);
             void makeDay(const json& day, const json& night);
             void makeDay(const json& night);
+            std::string forecastSection(const std::string dayData, const std::string nightData);
             std::string padLine(std::string line);
             void lineBreak();
 

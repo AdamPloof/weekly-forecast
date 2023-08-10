@@ -31,8 +31,6 @@ namespace forecast {
             dayNum++;
         }
 
-        xBorderSecondary();
-
         std::cout << m_output.str() << std::endl;
     }
 
@@ -72,6 +70,7 @@ namespace forecast {
         std::string nameN = padLine(night["name"]);
         m_output << borderY(true) << nameD << borderY(true) << nameN << borderY();
         m_output << '\n';
+        xBorderSecondary();
     }
 
     void GridPrinter::makeDay(const json& night) {
@@ -80,6 +79,26 @@ namespace forecast {
         std::string nameN = padLine(night["name"]);
         m_output << borderY(true) << nameD << borderY(true) << nameN << borderY();
         m_output << '\n';
+        xBorderSecondary();
+    }
+
+    // Reminder, each forecast section should have the same number of lines for day and night.
+    std::string GridPrinter::forecastSection(const std::string dayData, const std::string nightData) {
+        constexpr const int maxWidth = ((lineWidth - 1) / 2) - 3;
+        std::vector<std::string> dayLines;
+        std::istringstream iss = std::istringstream(dayData);
+        std::string output;
+        while (iss >> output) {
+            if (output.length() >= maxWidth) {
+                break;
+            }
+        }
+
+        std::vector<std::string> nightLines;
+
+
+
+
     }
 
     std::string GridPrinter::borderY(bool trailingSpace) {
