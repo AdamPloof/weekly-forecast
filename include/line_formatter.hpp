@@ -8,16 +8,17 @@
 #include <unordered_map>
 
 namespace forecast::utils {
+    struct WordBreakPair {
+        std::string before;
+        std::string after;
+    };
+
     class LineFormatter {
-        struct WordBreakPair {
-            std::string before;
-            std::string after;
-        };
 
         public:
             LineFormatter();
-            WordBreakPair breakWord(const std::string word, const int maxLength);
-            std::vector<std::string> breakLines(const std::string content, const int lineWidth);
+            WordBreakPair breakWord(const std::string word, const size_t maxLength);
+            std::vector<std::string> breakLines(const std::string content, const size_t lineWidth);
 
         private:
             std::unordered_map<char, bool> m_consonantMap;

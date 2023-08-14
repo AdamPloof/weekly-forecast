@@ -5,9 +5,11 @@
 #include "grid_printer.hpp"
 #include "location.hpp"
 #include "forecast.hpp"
+#include "line_formatter.hpp"
 
 using json = nlohmann::json;
 using namespace forecast;
+using namespace forecast::utils;
 
 #define ASSERT_TRUE(exp, msg) if (!(exp)) { \
     std::cout << __FUNCTION__ << " failed on line " << __LINE__ \
@@ -22,17 +24,21 @@ namespace test::grid_printer {
         public:
             TestGridPrinter(Forecast* forecast) :
                 m_forecast(forecast),
-                m_printer(GridPrinter()) {
+                m_printer(GridPrinter()),
+                m_formatter(LineFormatter()) {
             }
 
             void run() {
                 testLineWidthIsFixed();
+                testLineFormatterWidth();
+                testBreakWord();
+                testBreakWordVowels();
                 reportResults();
             }
 
             void reportResults() {
                 int testCnt = m_passCnt + m_failCnt;
-                std::cout << "Finshed running " << testCnt << " tests." << std::endl;
+                std::cout << "\nFinshed running " << testCnt << " tests." << std::endl;
                 std::cout << "Passed: " << m_passCnt << std::endl;
                 std::cout << "Failed: " << m_failCnt << std::endl;
             }
@@ -51,9 +57,73 @@ namespace test::grid_printer {
                     ASSERT_TRUE((line.length() == m_lineWidth), errMsg);
                 }
             }
+
+            void testLineFormatterWidth() {
+                const int MAX_WIDTH = 10;
+                std::string test = "Here's a tale of two and a half cities, and one particularly long sentence.";
+                std::vector<std::string> lines = m_formatter.breakLines(test, MAX_WIDTH);
+
+                for (const std::string& line : lines) {
+                    std::cout << "line: " << line << std::endl;
+                    std::string errMsg = "Line is longer than max width. Expected: ";
+                    errMsg.append(std::to_string(MAX_WIDTH) + ", got: ");
+                    errMsg.append(std::to_string(line.length()));
+                    ASSERT_TRUE((line.length() <= MAX_WIDTH), errMsg);
+                }
+            }
+
+            void testBreakWord() {
+                std::string TEST_WORD = "fantastical";
+                int MAX_LEN = 5;
+                // expected before: fant-, after: astical
+
+                WordBreakPair pair = m_formatter.breakWord(TEST_WORD, MAX_LEN);
+                std::string errMsgB = "Word not broken as properly. Expected before: ";
+                errMsgB.append("fant-, got: ");
+                errMsgB.append(pair.before);
+                ASSERT_TRUE((pair.before == "fant-"), errMsgB);
+
+                std::string errMsgA = "Word not broken as properly. Expected after: ";
+                errMsgA.append("astical, got: ");
+                errMsgA.append(pair.after);
+                ASSERT_TRUE((pair.after == "astical"), errMsgA);
+
+
+                pair.before.pop_back();
+                std::string reconstruct = pair.before + pair.after;
+                std::string errMsgReconstruct = "Combined words do not equal original test word. Expected: ";
+                errMsgReconstruct.append(TEST_WORD + ", got: ");
+                errMsgReconstruct.append(reconstruct);
+                ASSERT_TRUE((reconstruct == TEST_WORD), errMsgReconstruct);
+            }
+
+            void testBreakWordVowels() {
+                std::string TEST_WORD = "AAAAAAEEEEEEIIIIOOOOUUUU";
+                int MAX_LEN = 10;
+                // expected before: fant-, after: astical
+
+                WordBreakPair pair = m_formatter.breakWord(TEST_WORD, MAX_LEN);
+                std::string errMsgB = "Word not broken as properly. Expected before: ";
+                errMsgB.append("AAAAAAEEE-, got: ");
+                errMsgB.append(pair.before);
+                ASSERT_TRUE((pair.before == "AAAAAAEEE-"), errMsgB);
+
+                std::string errMsgA = "Word not broken as properly. Expected after: ";
+                errMsgA.append("EEEIIIIOOOOUUUU, got: ");
+                errMsgA.append(pair.after);
+                ASSERT_TRUE((pair.after == "EEEIIIIOOOOUUUU"), errMsgA);
+
+                pair.before.pop_back();
+                std::string reconstruct = pair.before + pair.after;
+                std::string errMsgReconstruct = "Combined words do not equal original test word. Expected: ";
+                errMsgReconstruct.append(TEST_WORD + ", got: ");
+                errMsgReconstruct.append(reconstruct);
+                ASSERT_TRUE((reconstruct == TEST_WORD), errMsgReconstruct);
+            }
         private:
             Forecast* m_forecast;
             GridPrinter m_printer;
+            LineFormatter m_formatter;
             size_t m_lineWidth = 129;
             int m_passCnt = 0;
             int m_failCnt = 0;

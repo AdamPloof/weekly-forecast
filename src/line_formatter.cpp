@@ -34,20 +34,38 @@ namespace forecast::utils {
      * after : ORDISSUPERLONGWORD
      * 
      */ 
-    LineFormatter::WordBreakPair LineFormatter::breakWord(const std::string word, const int maxLength) {
+    WordBreakPair LineFormatter::breakWord(const std::string word, const size_t maxLength) {
         WordBreakPair pair;
         if (word.length() <= maxLength) {
             pair.before = word;
             return pair;
         }
 
-        for (int i = maxLength - 4; i > 0; i--) {
-            if (m_consonantMap[word[i]] == true) {
-                // before is everything up to this letter
-                pair.before = word.substr(0, i + 1) + '-';
-                pair.after = word.substr(i + 1, word.length() - i);
-                break;
+        size_t startPos;
+        if (maxLength <= word.length() - 3) {
+            startPos = maxLength - 1;
+        } else {
+            startPos = word.length() - 4;
+        }
+
+        for (size_t i = startPos; i > 0; i--) {
+            if (auto cSearch =  m_consonantMap.find(word[i]); cSearch != m_consonantMap.end()) {
+                if (cSearch->second == false) {
+                    // character is a vowel
+                    continue;
+                }
             }
+
+            // Character is a consonant or non-letter.
+            pair.before = word.substr(0, i + 1) + '-';
+            pair.after = word.substr(i + 1, word.length() - i);
+            break;
+        }
+
+        // Dealing with the possibility of a string of all vowels
+        if (pair.before == "") {
+            pair.before = word.substr(0, startPos) + '-';
+            pair.after = word.substr(startPos, word.length() - startPos);
         }
 
         return pair;
@@ -57,7 +75,7 @@ namespace forecast::utils {
      * Break a long string into a vector of lines at word boundries less than lineWidth.
      * If a single word is longer than the lineWidth, break the word at a consonant.
      */
-    std::vector<std::string> LineFormatter::breakLines(const std::string content, const int lineWidth) {
+    std::vector<std::string> LineFormatter::breakLines(const std::string content, const size_t lineWidth) {
         std::vector<std::string> lines;
         if (content.length() <= lineWidth) {
             lines.push_back(content);
@@ -68,7 +86,14 @@ namespace forecast::utils {
         std::string output;
         std::istringstream iss = std::istringstream(content);
         while (iss >> tempWord) {
-            if (output == "" && tempWord.length() > lineWidth) {
+            size_t lineLen = tempWord.length() + output.length();
+            if (lineLen >= lineWidth && output != "") {
+                output.pop_back();
+                lines.push_back(output);
+                output = "";
+            }
+
+            if (tempWord.length() > lineWidth) {
                 // Need to deal with the possibility that there are rreeealllly long words,
                 // that might need to be broken multiple times. Probably not gonna happen :P
                 while (tempWord.length() > lineWidth) {
@@ -76,12 +101,6 @@ namespace forecast::utils {
                     lines.push_back(p.before);
                     tempWord = p.after;
                 }
-            }
-
-            if ((tempWord.length() + output.length()) >= lineWidth) {
-                output.pop_back();
-                lines.push_back(output);
-                output = "";
             }
 
             output += tempWord + " ";

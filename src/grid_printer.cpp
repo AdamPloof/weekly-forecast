@@ -94,10 +94,12 @@ namespace forecast {
             }
         }
 
-        std::vector<std::string> nightLines;
+        // std::vector<std::string> nightLines;
+        if (nightData != "") {
 
+        }
 
-
+        return "";
 
     }
 
