@@ -3,7 +3,7 @@
 namespace forecast {
     const int GridPrinter::lineWidth = 129;
 
-    GridPrinter::GridPrinter() {}
+    GridPrinter::GridPrinter() : m_formatter(LineFormatter()) {}
 
     void GridPrinter::render(Forecast* forecast, int days) {
         xBorderMain();
@@ -65,41 +65,107 @@ namespace forecast {
 
     // Note: makeDay refers to a *full* day, i.e. a day and a night period.
     void GridPrinter::makeDay(const json& day, const json& night) {
-        // Name
-        std::string nameD = padLine(day["name"]);
-        std::string nameN = padLine(night["name"]);
-        m_output << borderY(true) << nameD << borderY(true) << nameN << borderY();
-        m_output << '\n';
+        std::string name = forecastSection(day["name"], night["name"]);
+        m_output << name;
+
+        std::string shortForecast = forecastSection(day["shortForecast"], night["shortForecast"]);
+        m_output << shortForecast;
+
+        std::string summary = forecastSection(periodSummary(day), periodSummary(night));
+        m_output << summary;
         xBorderSecondary();
+
+        std::string detail = forecastSection(day["detailedForecast"], night["detailedForecast"]);
+        m_output << detail;
+
+        xBorderMain();
     }
 
+    // TODO: consolidate this into one method.
     void GridPrinter::makeDay(const json& night) {
-        // Name
-        std::string nameD = padLine(" ");
-        std::string nameN = padLine(night["name"]);
-        m_output << borderY(true) << nameD << borderY(true) << nameN << borderY();
-        m_output << '\n';
+        std::string name = forecastSection(" ", night["name"]);
+        m_output << name;
+
+        std::string shortForecast = forecastSection(" ", night["shortForecast"]);
+        m_output << shortForecast;
+
+        std::string summary = forecastSection(" ", periodSummary(night));
+        m_output << summary;
         xBorderSecondary();
+
+        std::string detail = forecastSection(" ", night["detailedForecast"]);
+        m_output << detail;
+
+        xBorderMain();
+    }
+
+    std::string GridPrinter::periodSummary(const json& period) {
+        std::string temperature;
+        int tempVal = period["temperature"];
+        if (period["isDaytime"] == true) {
+            temperature = "high: " + std::to_string(tempVal);
+        } else {
+            temperature = "low: " + std::to_string(tempVal);
+        }
+        temperature.append(period["temperatureUnit"]);
+
+        int precipVal;
+        if (period["probabilityOfPrecipitation"]["value"] == nullptr) {
+            precipVal = 0;
+        } else {
+            precipVal = period["probabilityOfPrecipitation"]["value"];
+        }
+        std::string precip = "precipitation: " + std::to_string(precipVal) + "%";
+
+        int humidityVal;
+        if (period["relativeHumidity"]["value"] == nullptr) {
+            humidityVal = 0;
+        } else {
+            humidityVal = period["relativeHumidity"]["value"];
+        }
+        std::string humidity = "humidty: " + std::to_string(humidityVal) + "%";
+
+        std::ostringstream ss;
+        ss << temperature << " | " << humidity << " | " << precip;
+
+        return ss.str();
     }
 
     // Reminder, each forecast section should have the same number of lines for day and night.
+    // TODO: replace the hardcoded borders with something more flexible.
     std::string GridPrinter::forecastSection(const std::string dayData, const std::string nightData) {
         constexpr const int maxWidth = ((lineWidth - 1) / 2) - 3;
-        std::vector<std::string> dayLines;
-        std::istringstream iss = std::istringstream(dayData);
-        std::string output;
-        while (iss >> output) {
-            if (output.length() >= maxWidth) {
-                break;
+        std::vector<std::string> dayLines = m_formatter.breakLines(dayData, maxWidth);
+        std::vector<std::string> nightLines = m_formatter.breakLines(nightData, maxWidth);
+
+        size_t mostLines;
+        if (dayLines.size() > nightLines.size()) {
+            mostLines = dayLines.size();
+        } else {
+            mostLines = nightLines.size();
+        }
+
+        std::ostringstream section;
+        section << "| ";
+        for (size_t i = 0; i < mostLines; i++) {
+            if (i > dayLines.size() - 1) {
+                section << m_formatter.padLine(" ", maxWidth);
+            } else {
+                section << m_formatter.padLine(dayLines[i], maxWidth);
             }
+
+            section << " | ";
+
+            if (i > nightLines.size() - 1) {
+                section << m_formatter.padLine(" ", maxWidth);
+            } else {
+                section << m_formatter.padLine(nightLines[i], maxWidth);
+            }
+
+            section << " |\n";
         }
 
-        // std::vector<std::string> nightLines;
-        if (nightData != "") {
-
-        }
-
-        return "";
+        return section.str();
 
     }
 
@@ -109,15 +175,5 @@ namespace forecast {
         } else {
             return "|";
         }
-    }
-
-    // Not technically a full line, but the line of a single period.
-    // Basically, half a line.
-    std::string GridPrinter::padLine(const std::string line) {
-        int padAmt = ((GridPrinter::lineWidth - 1) / 2) - (2 + line.length());
-        std::string padding = std::string(padAmt, ' ');
-        std::string padded = line + padding;
-
-        return padded;
     }
 }

@@ -33,6 +33,7 @@ namespace forecast::utils {
      * before: ATESTW-
      * after : ORDISSUPERLONGWORD
      * 
+     * TODO: don't break words on numbers -- that would be confusing.
      */ 
     WordBreakPair LineFormatter::breakWord(const std::string word, const size_t maxLength) {
         WordBreakPair pair;
@@ -111,5 +112,13 @@ namespace forecast::utils {
         }
 
         return lines;
+    }
+
+    std::string LineFormatter::padLine(const std::string line, int width) {
+        int padAmt = ((width - 1) / 2) - (2 + line.length());
+        std::string padding = std::string(padAmt, ' ');
+        std::string padded = line + padding;
+
+        return padded;
     }
 }

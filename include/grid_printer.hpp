@@ -6,7 +6,10 @@
 #include <sstream>
 #include <nlohmann/json.hpp>
 #include "forecast.hpp"
+#include "line_formatter.hpp"
 #include "output_interface.hpp"
+
+using namespace forecast::utils;
 
 /**
  * Process for printing a forecast in a grid format:
@@ -35,10 +38,7 @@
  * 
  * Each line has a fixed length. Or more accurately, each pseudo line for each period
  * has a fixed length and the line length is 2x that.
- * 
- * 
 */
-
 namespace forecast {
     class GridPrinter : public OutputInterface {
         public:
@@ -54,10 +54,11 @@ namespace forecast {
             std::string borderY(bool trailingSpace = false);
             void makeDay(const json& day, const json& night);
             void makeDay(const json& night);
+            std::string periodSummary(const json& period);
             std::string forecastSection(const std::string dayData, const std::string nightData);
-            std::string padLine(std::string line);
             void lineBreak();
 
+            LineFormatter m_formatter;
             std::ostringstream m_output;
     };
 }

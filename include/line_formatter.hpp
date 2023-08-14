@@ -19,6 +19,7 @@ namespace forecast::utils {
             LineFormatter();
             WordBreakPair breakWord(const std::string word, const size_t maxLength);
             std::vector<std::string> breakLines(const std::string content, const size_t lineWidth);
+            std::string padLine(const std::string line, int width);
 
         private:
             std::unordered_map<char, bool> m_consonantMap;
