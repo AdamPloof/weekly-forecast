@@ -33,6 +33,7 @@ namespace test::grid_printer {
                 testLineFormatterWidth();
                 testBreakWord();
                 testBreakWordVowels();
+                testPadLine();
                 reportResults();
             }
 
@@ -119,6 +120,16 @@ namespace test::grid_printer {
                 errMsgReconstruct.append(TEST_WORD + ", got: ");
                 errMsgReconstruct.append(reconstruct);
                 ASSERT_TRUE((reconstruct == TEST_WORD), errMsgReconstruct);
+            }
+
+            void testPadLine() {
+                std::string test = "low: 46F | humidty: 79% | precipitation: 0%";
+                size_t width = 61;
+                std::string padded = m_formatter.padLine(test, width);
+                std::string errMsg = "Padded line does not match expected width. Expected: ";
+                errMsg.append(std::to_string(width) + ", got: ");
+                errMsg.append(std::to_string(padded.length()));
+                ASSERT_TRUE(padded.length() == width, errMsg);
             }
         private:
             Forecast* m_forecast;

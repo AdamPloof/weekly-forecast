@@ -115,7 +115,7 @@ namespace forecast::utils {
     }
 
     std::string LineFormatter::padLine(const std::string line, int width) {
-        int padAmt = ((width - 1) / 2) - (2 + line.length());
+        int padAmt = width - line.length();
         std::string padding = std::string(padAmt, ' ');
         std::string padded = line + padding;
 

@@ -3,7 +3,7 @@
 namespace forecast {
     const int GridPrinter::lineWidth = 129;
 
-    GridPrinter::GridPrinter() : m_formatter(LineFormatter()) {}
+    GridPrinter::GridPrinter() : m_formatter(LineFormatter()), m_output() {}
 
     void GridPrinter::render(Forecast* forecast, int days) {
         xBorderMain();
@@ -47,11 +47,11 @@ namespace forecast {
         m_output << "*\n";
     }
 
-    // | ... -- ... -- = ... -- ... -- = ... -- ... -- = ... -- ... -- |
+    // | ... __ ... __ = ... __ ... __ = ... __ ... __ = ... __ ... __ |
     void GridPrinter::xBorderSecondary() {
         m_output << "|";
         for (int i = 0; i < 16; i++) {
-            m_output << " ... --";
+            m_output << " ... __";
 
             if ((i + 1) % 8 == 0) {
                 m_output << " |";
@@ -146,8 +146,8 @@ namespace forecast {
         }
 
         std::ostringstream section;
-        section << "| ";
         for (size_t i = 0; i < mostLines; i++) {
+            section << "| ";
             if (i > dayLines.size() - 1) {
                 section << m_formatter.padLine(" ", maxWidth);
             } else {
