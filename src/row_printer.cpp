@@ -2,6 +2,7 @@
 
 namespace forecast {
     RowPrinter::RowPrinter() {}
+    RowPrinter::~RowPrinter() {};
 
     void RowPrinter::render(Forecast* forecast, int days) {
         makeHeader(forecast->getStartDate(), forecast->getEndDate(), forecast->getLocation());

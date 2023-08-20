@@ -11,6 +11,11 @@ namespace forecast {
         HIGH
     };
 
+    enum class OutputMode {
+        GRID,
+        ROW
+    };
+
     struct Options {
         Coordinates coords;
         std::string locationName;
@@ -19,6 +24,7 @@ namespace forecast {
         std::string addLocation;
         std::string removeLocation;
         std::string setHome;
+        OutputMode mode;
 
         Options();
     };   

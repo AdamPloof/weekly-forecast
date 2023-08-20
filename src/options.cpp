@@ -4,5 +4,6 @@ namespace forecast {
     Options::Options() : 
         coords {0, 0},
         verbosity(Verbosity::STD),
-        days(7) {};
+        days(7),
+        mode(OutputMode::GRID) {};
 }

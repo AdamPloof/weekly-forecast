@@ -5,8 +5,10 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <memory>
 #include "location.hpp"
 #include "options.hpp"
+#include "output_interface.hpp"
 
 /**
  * Reads and writes config from/to json file.
@@ -37,6 +39,7 @@ namespace forecast {
         Location* location;
         int days;
         Verbosity verbosity;
+        std::shared_ptr<OutputInterface> renderer;
 
         Config();
     };
@@ -55,6 +58,7 @@ namespace forecast {
             void setVerbosity(Verbosity lvl);
             void setHomeLocation(std::string locName);
             void removeLocation(std::string locName);
+            void setRenderer(std::shared_ptr<OutputInterface> renderer);
 
             static const std::string CONFIG_FILENAME;
             static const std::string DEFAULT_LOC_NAME;

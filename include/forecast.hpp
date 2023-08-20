@@ -20,7 +20,7 @@ namespace forecast {
             const Location* getLocation();
             const std::string getStartDate();
             const std::string getEndDate();
-            void render(OutputInterface* renderer, int days);
+            void render(std::shared_ptr<OutputInterface> renderer, int days);
             // ~Forecast();
         
         private:

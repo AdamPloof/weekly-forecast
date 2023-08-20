@@ -45,6 +45,7 @@ namespace forecast {
             static const int lineWidth;
 
             GridPrinter();
+            ~GridPrinter() override;
             void render(Forecast* forecast, int days) override;
             const std::ostringstream& getOutput() const;
 

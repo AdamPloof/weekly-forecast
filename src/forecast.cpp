@@ -35,7 +35,7 @@ namespace forecast {
         return m_endDate;
     }
 
-    void Forecast::render(OutputInterface* renderer, int days) {
+    void Forecast::render(std::shared_ptr<OutputInterface> renderer, int days) {
         renderer->render(this, days);
     }
 }

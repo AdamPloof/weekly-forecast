@@ -12,6 +12,7 @@ namespace forecast {
     class RowPrinter : public OutputInterface {
         public:
             RowPrinter();
+            ~RowPrinter() override;
             void render(Forecast* forecast, int days) override; 
 
         private:

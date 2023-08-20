@@ -1,10 +1,16 @@
 #include "config_manager.hpp"
 #include "utils.hpp"
+#include "grid_printer.hpp"
+#include "row_printer.hpp"
 
 using json = nlohmann::json;
 
 namespace forecast {
-    Config::Config() :  location(nullptr), days(7), verbosity(Verbosity::STD) {};
+    Config::Config() : 
+        location(nullptr),
+        days(7),
+        verbosity(Verbosity::STD),
+        renderer(nullptr) {};
 
     ConfigManager::ConfigManager() {
         Config m_activeConfig;
@@ -231,6 +237,10 @@ namespace forecast {
         j["coords"]["longitude"] = loc->coords.longitude;
 
         return j;
+    }
+
+    void ConfigManager::setRenderer(std::shared_ptr<OutputInterface> renderer) {
+        m_activeConfig.renderer = renderer;
     }
 
     // If no home location is set, then just return the first location in the list.

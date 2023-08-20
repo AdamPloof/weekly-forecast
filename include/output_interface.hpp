@@ -8,6 +8,7 @@ namespace forecast {
     class OutputInterface {
         public:
             virtual void render(Forecast* forecast, int days) = 0;
+            virtual ~OutputInterface() {};
     };
 }
 

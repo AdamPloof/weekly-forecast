@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <unordered_map>
+#include <memory>
 #include "http_request.hpp"
 #include "options.hpp"
 #include "forecast.hpp"
@@ -9,6 +11,7 @@
 #include "config_manager.hpp"
 #include "output_interface.hpp"
 #include "row_printer.hpp"
+#include "grid_printer.hpp"
 
 using namespace forecast;
 using namespace forecast::http_request;
@@ -56,9 +59,26 @@ namespace {
         return coords;
     }
 
+    OutputMode getMode(const char* outputMode) {
+        std::unordered_map<std::string, OutputMode> modeMap = {
+            {"grid", OutputMode::GRID},
+            {"row", OutputMode::ROW},
+        };
+        std::string strMode = std::string(outputMode);
+        OutputMode mode;
+        if (auto lookup = modeMap.find(strMode); lookup != modeMap.end()) {
+            mode = lookup->second;
+        } else {
+            // TODO: set error flag for unreckognized mode? Default to grid for now.
+            mode = OutputMode::GRID;
+        }
+        
+        return mode;
+    }
+
     Options getOptions(int argc, char* argv[]) {
         int verbosity = 0;
-        const char* const shortOpts = "c:d:vsl:a:r:h:";
+        const char* const shortOpts = "c:d:vsl:a:r:h:m:";
         static struct option longOpts[] = {
             // Flags
             {"verbose", no_argument, &verbosity, 2},
@@ -71,6 +91,7 @@ namespace {
             {"add-location", required_argument, nullptr, 'a'},
             {"remove-location", required_argument, nullptr, 'r'},
             {"set-home", required_argument, nullptr, 'h'},
+            {"mode", required_argument, nullptr, 'm'},
             {nullptr, 0, nullptr, 0}
         };
 
@@ -103,6 +124,9 @@ namespace {
                     break;
                 case 'h':
                     opts.setHome = optarg;
+                    break;
+                case 'm':
+                    opts.mode = getMode(optarg);
                     break;
                 case '?':
                     // Note that getopt_long already prints an error msg when this happens
@@ -147,7 +171,7 @@ namespace {
         return forecastData;
     }
 
-    Location getLocation(HttpRequest* request, const Coordinates* coords){
+    Location getLocation(HttpRequest* request, const Coordinates* coords) {
         std::ostringstream url;
         url << "https://api.weather.gov/points/" 
             << coords->latitude << "," << coords->longitude;
@@ -169,6 +193,14 @@ namespace {
             if (opts.locationName.empty()) {
                 configManager.setLocation(opts.setHome);
             }
+        }
+
+        if (opts.mode == OutputMode::GRID) {
+            std::shared_ptr<OutputInterface> renderer = std::make_shared<GridPrinter>();
+            configManager.setRenderer(renderer);
+        } else {
+            std::shared_ptr<OutputInterface> renderer = std::make_shared<RowPrinter>();
+            configManager.setRenderer(renderer);
         }
 
         // TODO: if both coordinates and a name are provided warn that the name is ignored and coords
@@ -234,8 +266,7 @@ int main(int argc, char* argv[]) {
     json forecastData = getForecastData(&request, config->location);
     Forecast forecast = Forecast(forecastData, config->location);
 
-    RowPrinter printer = RowPrinter();
-    forecast.render(&printer, config->days);
+    forecast.render(config->renderer, config->days);
 
     configManager.saveConfig();
 

@@ -4,6 +4,7 @@ namespace forecast {
     const int GridPrinter::lineWidth = 129;
 
     GridPrinter::GridPrinter() : m_formatter(LineFormatter()), m_output() {}
+    GridPrinter::~GridPrinter() {};
 
     void GridPrinter::render(Forecast* forecast, int days) {
         xBorderMain();
