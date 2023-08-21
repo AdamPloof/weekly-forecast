@@ -1,12 +1,14 @@
 #include "grid_printer.hpp"
 
 namespace forecast {
-    const int GridPrinter::lineWidth = 129;
+    const int GridPrinter::LINE_WIDTH = 129;
 
     GridPrinter::GridPrinter() : m_formatter(LineFormatter()), m_output() {}
     GridPrinter::~GridPrinter() {};
 
     void GridPrinter::render(Forecast* forecast, int days) {
+        xBorderMain();
+        header(forecast->getStartDate(), forecast->getEndDate(), forecast->getLocation());
         xBorderMain();
 
         // Remember, there's two periods per day. But it's possible the first period is night time.
@@ -62,6 +64,20 @@ namespace forecast {
         }
 
         m_output << "\n";
+    }
+
+    // output << makeTitle() << "\n";
+    // output << startDate << " - " << endDate << "\n";
+    // output << loc->city << ", " << loc->state;
+    void GridPrinter::header(const std::string startDate, const std::string endDate, const Location* loc) {
+        m_output << borderY(true);
+        m_output << m_formatter.padLine("Forecast", LINE_WIDTH - 4) << " |\n";
+
+        std::string dateRange = startDate + " - " + endDate;
+        m_output << borderY(true) << m_formatter.padLine(dateRange, LINE_WIDTH - 4) << " |\n";
+
+        std::string locRow = loc->city + ", " + loc->state;
+        m_output << borderY(true) << m_formatter.padLine(locRow, LINE_WIDTH - 4) << " |\n";
     }
 
     // Note: makeDay refers to a *full* day, i.e. a day and a night period.
@@ -135,7 +151,7 @@ namespace forecast {
     // Reminder, each forecast section should have the same number of lines for day and night.
     // TODO: replace the hardcoded borders with something more flexible.
     std::string GridPrinter::forecastSection(const std::string dayData, const std::string nightData) {
-        constexpr const int maxWidth = ((lineWidth - 1) / 2) - 3;
+        constexpr const int maxWidth = ((LINE_WIDTH - 1) / 2) - 3;
         std::vector<std::string> dayLines = m_formatter.breakLines(dayData, maxWidth);
         std::vector<std::string> nightLines = m_formatter.breakLines(nightData, maxWidth);
 

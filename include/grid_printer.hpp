@@ -42,7 +42,7 @@ using namespace forecast::utils;
 namespace forecast {
     class GridPrinter : public OutputInterface {
         public:
-            static const int lineWidth;
+            static const int LINE_WIDTH;
 
             GridPrinter();
             ~GridPrinter() override;
@@ -53,6 +53,7 @@ namespace forecast {
             void xBorderMain();
             void xBorderSecondary();
             std::string borderY(bool trailingSpace = false);
+            void header(const std::string startDate, const std::string endDate, const Location* loc);
             void makeDay(const json& day, const json& night);
             void makeDay(const json& night);
             std::string periodSummary(const json& period);
