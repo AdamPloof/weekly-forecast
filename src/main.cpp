@@ -78,7 +78,7 @@ namespace {
 
     Options getOptions(int argc, char* argv[]) {
         int verbosity = 0;
-        const char* const shortOpts = "c:d:vsl:a:r:h:m:";
+        const char* const shortOpts = "c:d:vsl:a:r:h:m:u:";
         static struct option longOpts[] = {
             // Flags
             {"verbose", no_argument, &verbosity, 2},
@@ -92,6 +92,7 @@ namespace {
             {"remove-location", required_argument, nullptr, 'r'},
             {"set-home", required_argument, nullptr, 'h'},
             {"mode", required_argument, nullptr, 'm'},
+            {"user-agent", required_argument, nullptr, 'u'},
             {nullptr, 0, nullptr, 0}
         };
 
@@ -128,6 +129,9 @@ namespace {
                 case 'm':
                     opts.mode = getMode(optarg);
                     break;
+                case 'u':
+                    opts.userAgent = optarg;
+                    break;
                 case '?':
                     // Note that getopt_long already prints an error msg when this happens
                     // just putting something here as a placeholder in case we want to handle this
@@ -158,7 +162,8 @@ namespace {
         return opts;
     }
 
-    json getForecastData(HttpRequest* request, Location* location) {
+    json getForecastData(HttpRequest* request, Location* location, std::string userAgent) {
+        request->appendHeader("User-Agent", userAgent);
         std::ostringstream url;
         url << "https://api.weather.gov/gridpoints/" 
             << location->gridId << "/"
@@ -169,63 +174,6 @@ namespace {
         json forecastData = request->getJsonResponse();
 
         return forecastData;
-    }
-
-    Location getLocation(HttpRequest* request, const Coordinates* coords) {
-        std::ostringstream url;
-        url << "https://api.weather.gov/points/" 
-            << coords->latitude << "," << coords->longitude;
-
-        request->send(url.str());
-
-        json gridPointsData = request->getJsonResponse();
-        Location location(gridPointsData, ConfigManager::TEMP_LOC_NAME);
-
-        return location;
-    }
-
-    void setConfigOptions(Options& opts, ConfigManager& configManager, HttpRequest& request)  {
-        const Config* config = configManager.getConfig();
-        if (!opts.setHome.empty()) {
-            configManager.setHomeLocation(opts.setHome);
-
-            // Use the new home location as the location is one is not explicitly provided.
-            if (opts.locationName.empty()) {
-                configManager.setLocation(opts.setHome);
-            }
-        }
-
-        if (opts.mode == OutputMode::GRID) {
-            std::shared_ptr<OutputInterface> renderer = std::make_shared<GridPrinter>();
-            configManager.setRenderer(renderer);
-        } else {
-            std::shared_ptr<OutputInterface> renderer = std::make_shared<RowPrinter>();
-            configManager.setRenderer(renderer);
-        }
-
-        // TODO: if both coordinates and a name are provided warn that the name is ignored and coords
-        // are used.
-        if (opts.coords.isValid()) {
-            // Fetch location for coordinates.
-            // Coordinates coords = {44.389243, -72.887906};
-            Location location = getLocation(&request, &opts.coords);
-            if (!opts.addLocation.empty()) {
-                // TODO: warn user that they need to provide coordinates if they try to add a loc without them.
-                location.name = opts.addLocation;
-            }
-
-            configManager.setLocation(location);
-        } else if (!opts.locationName.empty()) {
-            configManager.setLocation(opts.locationName);
-        }
-
-        if (config->verbosity != opts.verbosity) {
-            configManager.setVerbosity(opts.verbosity);
-        }
-
-        if (config->days != opts.days) {
-            configManager.setDays(opts.days);
-        }
     }
 }
 
@@ -245,30 +193,21 @@ namespace {
  *  
 */
 int main(int argc, char* argv[]) {
-    Options opts = getOptions(argc, argv);
-    ConfigManager configManager;
-    configManager.loadConfig();
-
     HttpRequest request = HttpRequest();
     request.init();
-
     if (request.getStatus() == clientStatus::ERROR) {
         // log error
     }
 
-    // TODO: set user agent from config, ClOptions
-    // Must be set on first run by user.
-    request.appendHeader("User-Agent", "adamploof@hotmail.com");
-
-    setConfigOptions(opts, configManager, request);
+    Options opts = getOptions(argc, argv);
+    ConfigManager configManager = ConfigManager(&opts, &request);
     const Config* config = configManager.getConfig();
-
-    json forecastData = getForecastData(&request, config->location);
-    Forecast forecast = Forecast(forecastData, config->location);
-
-    forecast.render(config->renderer, config->days);
-
     configManager.saveConfig();
+
+    json forecastData = getForecastData(&request, config->location, config->userAgent);
+    Forecast forecast = Forecast(forecastData, config->location);
+    forecast.setRenderer(config->renderer);
+    forecast.render(config->days);
 
     return 0;
 }

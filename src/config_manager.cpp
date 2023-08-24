@@ -1,3 +1,4 @@
+#include <sstream>
 #include "config_manager.hpp"
 #include "utils.hpp"
 #include "grid_printer.hpp"
@@ -6,22 +7,67 @@
 using json = nlohmann::json;
 
 namespace forecast {
+    const std::string ConfigManager::CONFIG_FILENAME = "config.json";
+    const std::string ConfigManager::DEFAULT_LOC_NAME = "app_default_x2340";
+    const std::string ConfigManager::TEMP_LOC_NAME = "temp_abc234";
+
     Config::Config() : 
         location(nullptr),
         days(7),
         verbosity(Verbosity::STD),
         renderer(nullptr) {};
 
-    ConfigManager::ConfigManager() {
+    ConfigManager::ConfigManager(Options* opts, HttpRequest* request) {
         Config m_activeConfig;
+        loadConfig();
+
+        if (!opts->setHome.empty()) {
+            setHomeLocation(opts->setHome);
+
+            // Use the new home location as the location is one is not explicitly provided.
+            if (opts->locationName.empty()) {
+                setLocation(opts->setHome);
+            }
+        }
+
+        if (opts->mode == OutputMode::GRID) {
+            std::shared_ptr<OutputInterface> renderer = std::make_shared<GridPrinter>();
+            setRenderer(renderer);
+        } else {
+            std::shared_ptr<OutputInterface> renderer = std::make_shared<RowPrinter>();
+            setRenderer(renderer);
+        }
+
+        if (!opts->userAgent.empty()) {
+            m_userAgent = opts->userAgent;
+            m_activeConfig.userAgent = opts->userAgent;
+        } else if (m_userAgent.empty()) {
+            // TODO: prompt for user input for user Agent
+        }
+
+        // TODO: if both coordinates and a name are provided warn that the name is ignored and coords are used.
+        if (opts->coords.isValid()) {
+            // Fetch location for coordinates.
+            // Coordinates coords = {44.389243, -72.887906};
+            Location location = fetchLocation(request, &opts->coords);
+            if (!opts->addLocation.empty()) {
+                // TODO: warn user that they need to provide coordinates if they try to add a loc without them.
+                location.name = opts->addLocation;
+            }
+
+            setLocation(location);
+        } else if (!opts->locationName.empty()) {
+            setLocation(opts->locationName);
+        }
+
+        if (m_activeConfig.verbosity != opts->verbosity) {
+            m_activeConfig.verbosity = opts->verbosity;
+        }
+
+        if (m_activeConfig.days != opts->days) {
+            setDays(opts->days);
+        }
     }
-
-    const std::string ConfigManager::CONFIG_FILENAME = "config.json";
-
-    // Kinda silly, but throwing on a few extra chars so the user doesn't by chance use one of these names
-    // since they won't be saved if they do.
-    const std::string ConfigManager::DEFAULT_LOC_NAME = "app_default_x2340";
-    const std::string ConfigManager::TEMP_LOC_NAME = "temp_abc234";
 
     const Config* ConfigManager::getConfig() {
         return &m_activeConfig;
@@ -42,6 +88,7 @@ namespace forecast {
         m_activeConfig.days = m_defaultDays;
         m_activeConfig.verbosity = m_defaultVerbosity;
         m_activeConfig.location = getLocationByName(m_homeName);
+        m_activeConfig.userAgent = m_userAgent;
     }
 
     void ConfigManager::saveConfig() {
@@ -71,10 +118,6 @@ namespace forecast {
         m_activeConfig.location = &m_locations.back();
     }
 
-    void ConfigManager::setVerbosity(Verbosity lvl) {
-        m_activeConfig.verbosity = lvl;
-    }
-
     bool ConfigManager::configIsValid(json configData) {
         bool isValid = true;
         if (!configData.contains("locations")) {
@@ -89,6 +132,9 @@ namespace forecast {
         if (!configData.contains("homeLocation")) {
             isValid = false;
         }
+        if (!configData.contains("userAgent")) {
+            isValid = false;
+        }
 
         return isValid;                
     }
@@ -96,6 +142,8 @@ namespace forecast {
     void ConfigManager::parseConfig(json configData) {
         if (!configIsValid(configData)) {
             // TODO: Should probably signal that something is wrong with the config file.
+            // TODO: what if the user provides *some* options on the first run. We want
+            // don't want to throw the baby out with the bathwater here.
             loadFallbackConfig();
             return;
         }
@@ -125,6 +173,7 @@ namespace forecast {
         // Note: make sure to set the homeLocation *after* adding all locations!
         m_homeName = configData["homeLocation"];
         m_defaultDays = configData["defaultDays"];
+        m_userAgent = configData["userAgent"];
     }
 
     // Sets default config options in case there's an invalid config file
@@ -137,6 +186,7 @@ namespace forecast {
         m_homeName = m_locations.front().name;
         m_defaultDays = 7;
         m_defaultVerbosity = Verbosity::STD;
+        m_userAgent = "";
     }
 
     void ConfigManager::addLocation(json& locationData) {
@@ -212,6 +262,7 @@ namespace forecast {
         config["defaultDays"] = m_defaultDays;
         config["defaultVerbosity"] = m_defaultVerbosity;
         config["homeLocation"] = m_homeName;
+        config["userAgent"] = m_userAgent;
 
         json locations = json::array();
         for (const Location& loc : m_locations) {
@@ -241,6 +292,24 @@ namespace forecast {
 
     void ConfigManager::setRenderer(std::shared_ptr<OutputInterface> renderer) {
         m_activeConfig.renderer = renderer;
+    }
+
+    Location ConfigManager::fetchLocation(HttpRequest* request, const Coordinates* coords) {
+        std::ostringstream url;
+        url << "https://api.weather.gov/points/" 
+            << coords->latitude << "," << coords->longitude;
+
+        request->send(url.str());
+
+        json gridPointsData = request->getJsonResponse();
+        Location location(gridPointsData, ConfigManager::TEMP_LOC_NAME);
+
+        return location;
+    }
+
+    // TODO: check that the userAgent is an email.
+    bool ConfigManager::userAgentIsValid(std::string userAgent) {
+        return true;
     }
 
     // If no home location is set, then just return the first location in the list.

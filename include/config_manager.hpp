@@ -6,9 +6,13 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <memory>
+#include "options.hpp"
+#include "http_request.hpp"
 #include "location.hpp"
 #include "options.hpp"
 #include "output_interface.hpp"
+
+using namespace forecast::http_request;
 
 /**
  * Reads and writes config from/to json file.
@@ -40,13 +44,18 @@ namespace forecast {
         int days;
         Verbosity verbosity;
         std::shared_ptr<OutputInterface> renderer;
+        std::string userAgent;
 
         Config();
     };
 
     class ConfigManager {
         public:
-            ConfigManager();
+            static const std::string CONFIG_FILENAME;
+            static const std::string DEFAULT_LOC_NAME;
+            static const std::string TEMP_LOC_NAME;
+
+            ConfigManager(Options* opts, HttpRequest* request);
             // ~ConfigManager();
 
             const Config* getConfig();
@@ -55,14 +64,12 @@ namespace forecast {
             void setDays(int days);
             void setLocation(std::string locName);
             void setLocation(Location loc);
-            void setVerbosity(Verbosity lvl);
             void setHomeLocation(std::string locName);
             void removeLocation(std::string locName);
             void setRenderer(std::shared_ptr<OutputInterface> renderer);
+            Location fetchLocation(HttpRequest* request, const Coordinates* coords);
+            bool userAgentIsValid(std::string userAgent);
 
-            static const std::string CONFIG_FILENAME;
-            static const std::string DEFAULT_LOC_NAME;
-            static const std::string TEMP_LOC_NAME;
         private:
             bool configIsValid(json configData);
             void parseConfig(json configData);
@@ -73,11 +80,13 @@ namespace forecast {
             json serializeConfig();
             json locationToJson(const Location* loc);
 
+            HttpRequest* m_request;
             Config m_activeConfig;
             std::vector<Location> m_locations;
             int m_defaultDays;
             Verbosity m_defaultVerbosity;
             std::string m_homeName;
+            std::string m_userAgent;
     };
 }
 

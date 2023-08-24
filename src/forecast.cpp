@@ -9,7 +9,10 @@
 using json = nlohmann::json;
 
 namespace forecast {
-    Forecast::Forecast(const json forecastData, const Location* location) : m_location(location) {
+    Forecast::Forecast(const json forecastData, const Location* location) : 
+        m_location(location),
+        m_renderer(nullptr)
+    {
         const json periods = forecastData["properties"]["periods"];
         for (const json& period : periods) {
             m_periods.push_back(period);
@@ -17,6 +20,10 @@ namespace forecast {
 
         m_startDate = m_periods.front()["startTime"];
         m_endDate = m_periods.back()["endTime"];
+    }
+
+    void Forecast::setRenderer(std::shared_ptr<OutputInterface> renderer) {
+        m_renderer = renderer;
     }
 
     const std::vector<json>* Forecast::getPeriods() {
@@ -35,7 +42,12 @@ namespace forecast {
         return m_endDate;
     }
 
-    void Forecast::render(std::shared_ptr<OutputInterface> renderer, int days) {
-        renderer->render(this, days);
+    void Forecast::render(int days) {
+        if (m_renderer == nullptr) {
+            // TODO: set error flag about renderer not being set?
+            return;
+        }
+
+        m_renderer->render(this, days);
     }
 }

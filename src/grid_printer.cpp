@@ -183,7 +183,6 @@ namespace forecast {
         }
 
         return section.str();
-
     }
 
     std::string GridPrinter::borderY(bool trailingSpace) {

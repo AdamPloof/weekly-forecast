@@ -25,6 +25,7 @@ namespace forecast {
         std::string removeLocation;
         std::string setHome;
         OutputMode mode;
+        std::string userAgent;
 
         Options();
     };   
