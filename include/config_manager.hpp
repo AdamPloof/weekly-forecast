@@ -80,7 +80,6 @@ namespace forecast {
             json serializeConfig();
             json locationToJson(const Location* loc);
 
-            HttpRequest* m_request;
             Config m_activeConfig;
             std::vector<Location> m_locations;
             int m_defaultDays;

@@ -15,10 +15,10 @@ namespace forecast {
         location(nullptr),
         days(7),
         verbosity(Verbosity::STD),
-        renderer(nullptr) {};
+        renderer(nullptr),
+        userAgent("") {};
 
     ConfigManager::ConfigManager(Options* opts, HttpRequest* request) {
-        Config m_activeConfig;
         loadConfig();
 
         if (!opts->setHome.empty()) {
@@ -42,7 +42,13 @@ namespace forecast {
             m_userAgent = opts->userAgent;
             m_activeConfig.userAgent = opts->userAgent;
         } else if (m_userAgent.empty()) {
-            // TODO: prompt for user input for user Agent
+            // TODO: come up with a better prompt and validate User-Agent is valid
+            std::string userAgent;
+            std::cout << "This app uses the NOAA weather service which requires a User-Agent.\n";
+            std::cout << "Please enter an email used to identify who is requesting weather forecasts:" << std::endl;
+            std::cin >> userAgent;
+            m_userAgent = userAgent;
+            m_activeConfig.userAgent = m_userAgent;
         }
 
         // TODO: if both coordinates and a name are provided warn that the name is ignored and coords are used.
@@ -132,9 +138,6 @@ namespace forecast {
         if (!configData.contains("homeLocation")) {
             isValid = false;
         }
-        if (!configData.contains("userAgent")) {
-            isValid = false;
-        }
 
         return isValid;                
     }
@@ -173,7 +176,10 @@ namespace forecast {
         // Note: make sure to set the homeLocation *after* adding all locations!
         m_homeName = configData["homeLocation"];
         m_defaultDays = configData["defaultDays"];
-        m_userAgent = configData["userAgent"];
+
+        if (configData.contains("userAgent")) {
+            m_userAgent = configData["userAgent"];
+        }
     }
 
     // Sets default config options in case there's an invalid config file
@@ -309,7 +315,11 @@ namespace forecast {
 
     // TODO: check that the userAgent is an email.
     bool ConfigManager::userAgentIsValid(std::string userAgent) {
-        return true;
+        if (userAgent.length() > 2) {
+            return true;
+        } else {
+            return true;
+        }
     }
 
     // If no home location is set, then just return the first location in the list.
