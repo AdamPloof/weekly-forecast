@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <memory>
+#include <regex>
 #include "options.hpp"
 #include "http_request.hpp"
 #include "location.hpp"
@@ -54,6 +55,7 @@ namespace forecast {
             static const std::string CONFIG_FILENAME;
             static const std::string DEFAULT_LOC_NAME;
             static const std::string TEMP_LOC_NAME;
+            static const std::regex VALID_EMAIL_REGEX;
 
             ConfigManager(Options* opts, HttpRequest* request);
             // ~ConfigManager();
@@ -79,6 +81,7 @@ namespace forecast {
             Location* getLocationByName(std::string locName);
             json serializeConfig();
             json locationToJson(const Location* loc);
+            std::string promptForUserAgent();
 
             Config m_activeConfig;
             std::vector<Location> m_locations;

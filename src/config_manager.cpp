@@ -10,6 +10,7 @@ namespace forecast {
     const std::string ConfigManager::CONFIG_FILENAME = "config.json";
     const std::string ConfigManager::DEFAULT_LOC_NAME = "app_default_x2340";
     const std::string ConfigManager::TEMP_LOC_NAME = "temp_abc234";
+    const std::regex ConfigManager::VALID_EMAIL_REGEX = std::regex("^[A-Z0-9+_.-]+@[A-Z0-9]+(\\.[A-Z0-9]{2,})+$", std::regex::icase);
 
     Config::Config() : 
         location(nullptr),
@@ -42,11 +43,7 @@ namespace forecast {
             m_userAgent = opts->userAgent;
             m_activeConfig.userAgent = opts->userAgent;
         } else if (m_userAgent.empty()) {
-            // TODO: come up with a better prompt and validate User-Agent is valid
-            std::string userAgent;
-            std::cout << "This app uses the NOAA weather service which requires a User-Agent.\n";
-            std::cout << "Please enter an email used to identify who is requesting weather forecasts:" << std::endl;
-            std::cin >> userAgent;
+            std::string userAgent = promptForUserAgent();
             m_userAgent = userAgent;
             m_activeConfig.userAgent = m_userAgent;
         }
@@ -313,13 +310,20 @@ namespace forecast {
         return location;
     }
 
-    // TODO: check that the userAgent is an email.
+    // Check that the userAgent is a valid email.
     bool ConfigManager::userAgentIsValid(std::string userAgent) {
-        if (userAgent.length() > 2) {
-            return true;
-        } else {
-            return true;
-        }
+        return std::regex_match(userAgent, VALID_EMAIL_REGEX);
+    }
+
+    // TODO: come up with a better prompt and validate User-Agent is valid
+    // TODO: check if userAgent is valid and recursivly call or loop until we get a valid email.
+    std::string ConfigManager::promptForUserAgent() {
+        std::string userAgent;
+        std::cout << "This app uses the NOAA weather service which requires a User-Agent.\n";
+        std::cout << "Please enter an email used to identify who is requesting weather forecasts:" << std::endl;
+        std::cin >> userAgent;
+
+        return userAgent;
     }
 
     // If no home location is set, then just return the first location in the list.
