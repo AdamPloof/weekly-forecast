@@ -81,7 +81,7 @@ namespace forecast {
             Location* getLocationByName(std::string locName);
             json serializeConfig();
             json locationToJson(const Location* loc);
-            std::string promptForUserAgent();
+            std::string promptForUserAgent(bool isRetry = false);
 
             Config m_activeConfig;
             std::vector<Location> m_locations;

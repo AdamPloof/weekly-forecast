@@ -315,13 +315,20 @@ namespace forecast {
         return std::regex_match(userAgent, VALID_EMAIL_REGEX);
     }
 
-    // TODO: come up with a better prompt and validate User-Agent is valid
-    // TODO: check if userAgent is valid and recursivly call or loop until we get a valid email.
-    std::string ConfigManager::promptForUserAgent() {
-        std::string userAgent;
-        std::cout << "This app uses the NOAA weather service which requires a User-Agent.\n";
+    std::string ConfigManager::promptForUserAgent(bool isRetry) {
+        if (isRetry) {
+            std::cout << "\nThe User-Agent provided is not a valid email address.\n";
+        } else {
+            std::cout << "This app uses the NOAA weather service which requires a User-Agent.\n";
+        }
+
         std::cout << "Please enter an email used to identify who is requesting weather forecasts:" << std::endl;
+        std::string userAgent;
         std::cin >> userAgent;
+
+        if (!userAgentIsValid(userAgent)) {
+            userAgent = promptForUserAgent(true);
+        }
 
         return userAgent;
     }
