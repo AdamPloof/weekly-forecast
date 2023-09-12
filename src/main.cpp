@@ -18,8 +18,26 @@ using namespace forecast::http_request;
 
 namespace {
     void help() {
-        std::cout << "Help func TODO.";
+        const char* usage = R"(Forecast CLI provides a multi-day weather forecast for anywhere in the United States
 
+Usage:
+    forecast [options] [<arguments>]
+
+Options:
+    --help, -h                       Show help
+    --coords, -c LONGITUDE,LATITUDE  Get the forecast for a specific longitude and latitude
+                                     Separate coordinates pair with a comma (no space)
+    --days, -d INTEGER               The number of days you'd like a forecast for
+    --location, -l NAME              Get the forecast for a saved location
+    --add-location, -a NAME          When combined with --coords, save the location by
+                                     the name provided for later use
+    --remove-location, -r NAME       Remove a saved location
+    --set-home, -s NAME              Set the default/home location
+    --mode, -m row|grid              Choose the output mode: row or grid [default: grid]
+    --user-agent, -u EMAIL           Set the email address to use when requesting forecasts
+                                     from the NOAA weather API.
+        )";
+        std::cout << usage << std::endl;
         exit(1);
     }
 
@@ -78,19 +96,20 @@ namespace {
 
     Options getOptions(int argc, char* argv[]) {
         int verbosity = 0;
-        const char* const shortOpts = "c:d:vsl:a:r:h:m:u:";
+        const char* const shortOpts = "hc:d:vl:a:r:s:m:u:";
         static struct option longOpts[] = {
             // Flags
+            // TODO: not using verbosity flag atm, either use it or lose it.
             {"verbose", no_argument, &verbosity, 2},
-            {"short", no_argument, &verbosity, 1},
 
             // Args
+            {"help", no_argument, nullptr, 'h'},
             {"coords", required_argument, nullptr, 'c'},
             {"days", required_argument, nullptr, 'd'},
             {"location", required_argument, nullptr, 'l'},
             {"add-location", required_argument, nullptr, 'a'},
             {"remove-location", required_argument, nullptr, 'r'},
-            {"set-home", required_argument, nullptr, 'h'},
+            {"set-home", required_argument, nullptr, 's'},
             {"mode", required_argument, nullptr, 'm'},
             {"user-agent", required_argument, nullptr, 'u'},
             {nullptr, 0, nullptr, 0}
@@ -108,6 +127,9 @@ namespace {
                 case 0:
                     // Flag set
                     break;
+                case 'h':
+                    help();
+                    break;
                 case 'c':
                     opts.coords = parseCoords(optarg);
                     break;
@@ -123,7 +145,7 @@ namespace {
                 case 'r':
                     opts.removeLocation = optarg;
                     break;
-                case 'h':
+                case 's':
                     opts.setHome = optarg;
                     break;
                 case 'm':
