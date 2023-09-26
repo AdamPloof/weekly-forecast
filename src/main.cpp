@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include <unordered_map>
 #include <memory>
+#include <stdexcept>
 #include "http_request.hpp"
 #include "options.hpp"
 #include "forecast.hpp"
@@ -64,11 +65,11 @@ Options:
                 } else if (idx == 1) {
                     coords.longitude = stof(coord);
                 } else {
-                    // TODO: Too many coordinates. Throw invalid arguments error.
+                    throw std::invalid_argument("Invalid coordinate set. Must provide longitude and latitude separated by a comma.");
                 }
                 std::stof(coord);
             } else {
-                // TODO: Throw some kind of an invalid argument error.
+                throw std::invalid_argument("Invalid coordinates set. Longitude and Latitude must be a number");
             }
 
             idx++;
@@ -87,7 +88,7 @@ Options:
         if (auto lookup = modeMap.find(strMode); lookup != modeMap.end()) {
             mode = lookup->second;
         } else {
-            // TODO: set error flag for unreckognized mode? Default to grid for now.
+            std::cout << "Invalid mode. Must be either 'grid' or 'row'. Defaulting to grid mode." << std::endl;
             mode = OutputMode::GRID;
         }
         
@@ -155,11 +156,9 @@ Options:
                     opts.userAgent = optarg;
                     break;
                 case '?':
-                    // Note that getopt_long already prints an error msg when this happens
-                    // just putting something here as a placeholder in case we want to handle this
-                    // in some special way.
-                    // Maybe print help by default?
-                    std::cout << "Did not recognize argument: " << arg << std::endl;
+                    std::cout << "Unrecognized argument: " << arg << std::endl;
+                    std::cout << "\n";
+                    help();
                     break;
                 default:
                     help();
@@ -168,9 +167,7 @@ Options:
         }
 
         if (opts.coords.isValid() && !opts.locationName.empty()) {
-            // TODO: error: must provide either coordinates or location name, not both.
-        } else if (!opts.coords.isValid() && opts.locationName.empty()) {
-            // TODO: error: must provide either coordinates or location name, none set.
+            throw std::invalid_argument("Error: ambiguous location. Must provide either coordinates or location name, not both.");
         }
 
         if (verbosity == 1) {
@@ -210,26 +207,29 @@ Options:
  * If coordinates are provided, then prompt the user to see if they would like
  * to save the location for future use. Maybe suggest a name based on the city or
  * something like that.
- * 
- * TODO: handle 404s and other bad requests
- *  
 */
 int main(int argc, char* argv[]) {
     HttpRequest request = HttpRequest();
     request.init();
     if (request.getStatus() == clientStatus::ERROR) {
-        // log error
+        std::cout << "Unable to send forecast request. Check your internet connection and try again" << std::endl;
+        return 1;
     }
 
-    Options opts = getOptions(argc, argv);
-    ConfigManager configManager = ConfigManager(&opts, &request);
-    const Config* config = configManager.getConfig();
-    configManager.saveConfig();
+    try {
+        Options opts = getOptions(argc, argv);
+        ConfigManager configManager = ConfigManager(&opts, &request);
+        const Config* config = configManager.getConfig();
+        configManager.saveConfig();
 
-    json forecastData = getForecastData(&request, config->location, config->userAgent);
-    Forecast forecast = Forecast(forecastData, config->location);
-    forecast.setRenderer(config->renderer);
-    forecast.render(config->days);
+        json forecastData = getForecastData(&request, config->location, config->userAgent);
+        Forecast forecast = Forecast(forecastData, config->location);
+        forecast.setRenderer(config->renderer);
+        forecast.render(config->days);
+    } catch (std::exception const& e) {
+        std::cout << e.what() << std::endl;
+        return 1;
+    }
 
     return 0;
 }

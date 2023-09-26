@@ -2,6 +2,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <stdexcept>
 #include <nlohmann/json.hpp>
 #include "forecast.hpp"
 #include "output_interface.hpp"
@@ -44,7 +45,7 @@ namespace forecast {
 
     void Forecast::render(int days) {
         if (m_renderer == nullptr) {
-            // TODO: set error flag about renderer not being set?
+            throw std::invalid_argument("Could not output forecast. No renderer provided.");
             return;
         }
 
