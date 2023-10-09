@@ -21,55 +21,7 @@ namespace forecast {
 
     ConfigManager::ConfigManager(Options* opts, HttpRequest* request) {
         loadConfig();
-
-        if (!opts->setHome.empty()) {
-            setHomeLocation(opts->setHome);
-
-            // Use the new home location as the location is one is not explicitly provided.
-            if (opts->locationName.empty()) {
-                setLocation(opts->setHome);
-            }
-        }
-
-        if (opts->mode == OutputMode::GRID) {
-            std::shared_ptr<OutputInterface> renderer = std::make_shared<GridPrinter>();
-            setRenderer(renderer);
-        } else {
-            std::shared_ptr<OutputInterface> renderer = std::make_shared<RowPrinter>();
-            setRenderer(renderer);
-        }
-
-        if (!opts->userAgent.empty()) {
-            m_userAgent = opts->userAgent;
-            m_activeConfig.userAgent = opts->userAgent;
-        } else if (m_userAgent.empty()) {
-            std::string userAgent = promptForUserAgent();
-            m_userAgent = userAgent;
-            m_activeConfig.userAgent = m_userAgent;
-        }
-
-        // TODO: if both coordinates and a name are provided warn that the name is ignored and coords are used.
-        if (opts->coords.isValid()) {
-            // Fetch location for coordinates.
-            // Coordinates coords = {44.389243, -72.887906};
-            Location location = fetchLocation(request, &opts->coords);
-            if (!opts->addLocation.empty()) {
-                // TODO: warn user that they need to provide coordinates if they try to add a loc without them.
-                location.name = opts->addLocation;
-            }
-
-            setLocation(location);
-        } else if (!opts->locationName.empty()) {
-            setLocation(opts->locationName);
-        }
-
-        if (m_activeConfig.verbosity != opts->verbosity) {
-            m_activeConfig.verbosity = opts->verbosity;
-        }
-
-        if (m_activeConfig.days != opts->days) {
-            setDays(opts->days);
-        }
+        setOptions(opts, request);
     }
 
     const Config* ConfigManager::getConfig() {
@@ -100,11 +52,82 @@ namespace forecast {
         configFile.close();
     }
 
+    void ConfigManager::setOptions(Options* opts, HttpRequest* request) {
+        if (!opts->setHome.empty()) {
+            setHomeLocation(opts->setHome);
+
+            // Use the new home location as the location is one is not explicitly provided.
+            if (opts->locationName.empty()) {
+                setLocation(opts->setHome);
+            }
+        }
+
+        if (opts->mode == OutputMode::GRID) {
+            std::shared_ptr<OutputInterface> renderer = std::make_shared<GridPrinter>();
+            setRenderer(renderer);
+        } else {
+            std::shared_ptr<OutputInterface> renderer = std::make_shared<RowPrinter>();
+            setRenderer(renderer);
+        }
+
+        if (!opts->userAgent.empty()) {
+            m_userAgent = opts->userAgent;
+            m_activeConfig.userAgent = opts->userAgent;
+        } else if (m_userAgent.empty()) {
+            std::string userAgent = promptForUserAgent();
+            m_userAgent = userAgent;
+            m_activeConfig.userAgent = m_userAgent;
+        }
+
+        if (opts->coords.isValid()) {
+            // Fetch location for coordinates.
+            // Coordinates coords = {44.389243, -72.887906};
+            Location location = fetchLocation(request, &opts->coords);
+            if (!opts->addLocation.empty()) {
+                location.name = opts->addLocation;
+            }
+            setLocation(location);
+
+            if (!opts->locationName.empty()) {
+                addError(
+                    "Location name",
+                    "Coordinates and location name provided, ignoring name.", 
+                    ConfigErrorLvl::WARNING
+                );
+            }
+
+        } else {
+            if (!opts->addLocation.empty()) {
+                addError(
+                    "Add location name",
+                    "Must provide valid coordinates when adding a new location.", 
+                    ConfigErrorLvl::WARNING
+                );
+            }
+            
+            if (!opts->locationName.empty()) {
+                setLocation(opts->locationName);
+            }
+        }
+
+        if (m_activeConfig.verbosity != opts->verbosity) {
+            m_activeConfig.verbosity = opts->verbosity;
+        }
+
+        if (m_activeConfig.days != opts->days) {
+            setDays(opts->days);
+        }
+    }
+
     void ConfigManager::setDays(int days) {
         if (days <= 7 && days > 0) {
             m_activeConfig.days = days;
         } else {
-            // Set an error flag for invalid number of days.
+            addError(
+                "Days",
+                "Unable to fetch forecast for more than 7 days.", 
+                ConfigErrorLvl::ERROR
+            );
         }
     }
 
@@ -112,7 +135,11 @@ namespace forecast {
         if (inLocations(locName)) {
             m_activeConfig.location = getLocationByName(locName);
         } else {
-            // Set an error flag.
+            addError(
+                "Location name",
+                "Unable to find location with name: " + locName, 
+                ConfigErrorLvl::ERROR
+            );
         }
     }
 
@@ -121,7 +148,7 @@ namespace forecast {
         m_activeConfig.location = &m_locations.back();
     }
 
-    bool ConfigManager::configIsValid(json configData) {
+    bool ConfigManager::dataIsValid(json configData) {
         bool isValid = true;
         if (!configData.contains("locations")) {
             isValid = false;
@@ -140,10 +167,12 @@ namespace forecast {
     }
 
     void ConfigManager::parseConfig(json configData) {
-        if (!configIsValid(configData)) {
-            // TODO: Should probably signal that something is wrong with the config file.
-            // TODO: what if the user provides *some* options on the first run. We want
-            // don't want to throw the baby out with the bathwater here.
+        if (!dataIsValid(configData)) {
+            addError(
+                "Config file",
+                "Unable to load config from file. Falling back to default config.",
+                ConfigErrorLvl::WARNING
+            );
             loadFallbackConfig();
             return;
         }
@@ -208,42 +237,65 @@ namespace forecast {
         m_locations.push_back(location);
     }
 
-    // TODO: return error if locName not in locations
     void ConfigManager::setHomeLocation(std::string locName) {
         locName = strToLower(locName);
+        bool found = false;
         for (Location& loc : m_locations) {
             if (strToLower(loc.name) == locName) {
                 m_homeName = locName;
+                found = true;
                 break;
             }
         }
 
-        // return // some kind of error here;
+        if (!found) {
+            addError(
+                "Home location",
+                "Unable to set home location. Could not find location for name: " + locName, 
+                ConfigErrorLvl::ERROR
+            );
+        }
     }
 
-    // TODO: return error if locName not in locations
     void ConfigManager::removeLocation(std::string locName) {
         if (locName == ConfigManager::DEFAULT_LOC_NAME) {
-            // TODO: Warn the user that they shouldn't try this.
+            addError(
+                "Remove location",
+                "Unable to remove location. Invalid name: " + locName, 
+                ConfigErrorLvl::WARNING
+            );
             return;
         }
 
+        // Make sure we don't remove the active location without swapping it for something else.
         if (locName == m_activeConfig.location->name) {
-            // Make sure we don't remove the active location without swapping it for something else.
             Location location = Location(ConfigManager::DEFAULT_LOC_NAME);
             m_locations.push_back(location);
             m_activeConfig.location = &m_locations.back();
-            // TODO: Warn the user that they just removed the active location.
+            
+            addError(
+                "Remove location",
+                "Active location has been removed. Falling back to default location.", 
+                ConfigErrorLvl::WARNING
+            );
         }
 
+        bool found = false;
         for (std::vector<int>::size_type i = 0; i < m_locations.size(); i++) {
             if (m_locations[i].name == locName) {
                 m_locations.erase(m_locations.begin() + i);
+                found = true;
                 break;
             }
         }
 
-        // return // some kind of error here;
+        if (!found) {
+            addError(
+                "Remove location",
+                "Unable to remove location. Could not find location for name: " + locName, 
+                ConfigErrorLvl::ERROR
+            );
+        }
     }
 
     // TODO: should probably normalize names: remove whitespace, lower case, etc.
@@ -310,9 +362,24 @@ namespace forecast {
         return location;
     }
 
-    // Check that the userAgent is a valid email.
     bool ConfigManager::userAgentIsValid(std::string userAgent) {
         return std::regex_match(userAgent, VALID_EMAIL_REGEX);
+    }
+
+    bool ConfigManager::configIsValid() {
+        int errCnt = 0;
+        for (auto err : m_errors) {
+            if (err.lvl == ConfigErrorLvl::ERROR) {
+                errCnt++;
+                break;
+            }
+        }
+
+        return errCnt == 0;
+    }
+
+    std::vector<ConfigError>* ConfigManager::getErrors() {
+        return &m_errors;
     }
 
     std::string ConfigManager::promptForUserAgent(bool isRetry) {
@@ -344,5 +411,13 @@ namespace forecast {
         }
 
         return &m_locations.front();
+    }
+
+    void ConfigManager::addError(std::string field, std::string msg, ConfigErrorLvl lvl) {
+        ConfigError err;
+        err.field = field;
+        err.msg = msg;
+        err.lvl = lvl;
+        m_errors.push_back(err);
     }
 }

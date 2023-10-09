@@ -50,6 +50,17 @@ namespace forecast {
         Config();
     };
 
+    enum class ConfigErrorLvl {
+        WARNING,
+        ERROR
+    };
+
+    struct ConfigError {
+        std::string field;
+        std::string msg;
+        ConfigErrorLvl lvl;
+    };
+
     class ConfigManager {
         public:
             static const std::string CONFIG_FILENAME;
@@ -63,6 +74,7 @@ namespace forecast {
             const Config* getConfig();
             void loadConfig();
             void saveConfig();
+            void setOptions(Options* opts, HttpRequest* request);
             void setDays(int days);
             void setLocation(std::string locName);
             void setLocation(Location loc);
@@ -71,17 +83,20 @@ namespace forecast {
             void setRenderer(std::shared_ptr<OutputInterface> renderer);
             Location fetchLocation(HttpRequest* request, const Coordinates* coords);
             bool userAgentIsValid(std::string userAgent);
+            bool configIsValid();
+            std::vector<ConfigError>* getErrors();
 
         private:
-            bool configIsValid(json configData);
+            bool dataIsValid(json configData);
             void parseConfig(json configData);
             void loadFallbackConfig();
             void addLocation(json& locationData);
-            bool inLocations(std::string locName);
+            bool inLocations(std::string locName);            
             Location* getLocationByName(std::string locName);
             json serializeConfig();
             json locationToJson(const Location* loc);
             std::string promptForUserAgent(bool isRetry = false);
+            void addError(std::string field, std::string msg, ConfigErrorLvl lvl);
 
             Config m_activeConfig;
             std::vector<Location> m_locations;
@@ -89,6 +104,7 @@ namespace forecast {
             Verbosity m_defaultVerbosity;
             std::string m_homeName;
             std::string m_userAgent;
+            std::vector<ConfigError> m_errors;
     };
 }
 
