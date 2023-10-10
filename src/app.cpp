@@ -36,6 +36,10 @@ namespace forecast {
     */
     void App::run() {
         ConfigManager configManager = ConfigManager(&m_opts, &m_request);
+        if (!configManager.configIsValid()) {
+
+        }
+
         const Config* config = configManager.getConfig();
         configManager.saveConfig();
 
@@ -50,7 +54,6 @@ namespace forecast {
         const char* const shortOpts = "hc:d:vl:a:r:s:m:u:";
         static struct option longOpts[] = {
             // Flags
-            // TODO: not using verbosity flag atm, either use it or lose it.
             {"verbose", no_argument, &verbosity, 2},
 
             // Args
@@ -195,6 +198,13 @@ namespace forecast {
         return iss.eof() && !iss.fail();
     }
 
+    void App::showWarnings(std::vector<ConfigError> warnings) {
+
+    }
+
+    void App::exitWithErrors(std::vector<ConfigError> errors) {
+
+    }
 
     void App::help() {
         const char* usage = R"(Forecast CLI provides a multi-day weather forecast for anywhere in the United States

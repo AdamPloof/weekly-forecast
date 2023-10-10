@@ -281,12 +281,15 @@ namespace forecast {
         }
 
         bool found = false;
-        for (std::vector<int>::size_type i = 0; i < m_locations.size(); i++) {
-            if (m_locations[i].name == locName) {
-                m_locations.erase(m_locations.begin() + i);
+        int idx = 0;
+        for (Location& loc : m_locations) {
+            if (strToLower(loc.name) == strToLower(locName)) {
+                m_locations.erase(m_locations.begin() + idx);
                 found = true;
                 break;
             }
+
+            idx++;
         }
 
         if (!found) {
@@ -298,7 +301,6 @@ namespace forecast {
         }
     }
 
-    // TODO: should probably normalize names: remove whitespace, lower case, etc.
     bool ConfigManager::inLocations(std::string locName) {
         bool found = false;
         locName = strToLower(locName);
