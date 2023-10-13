@@ -384,6 +384,10 @@ namespace forecast {
         return &m_errors;
     }
 
+    std::vector<ConfigError>* ConfigManager::getWarnings() {
+        return &m_warnings;
+    }
+
     std::string ConfigManager::promptForUserAgent(bool isRetry) {
         if (isRetry) {
             std::cout << "\nThe User-Agent provided is not a valid email address.\n";
@@ -420,6 +424,16 @@ namespace forecast {
         err.field = field;
         err.msg = msg;
         err.lvl = lvl;
-        m_errors.push_back(err);
+
+        switch (lvl) {
+            case ConfigErrorLvl::ERROR:
+                m_errors.push_back(err);
+                break;
+            case ConfigErrorLvl::WARNING:
+                m_warnings.push_back(err);
+                break;
+            default:
+                m_errors.push_back(err);
+        }
     }
 }

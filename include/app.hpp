@@ -11,10 +11,10 @@
 using json = nlohmann::json;
 using namespace forecast::http_request;
 
-struct Coordinates;
-struct ConfigError;
-
 namespace forecast {
+    struct Coordinates;
+    struct ConfigError;
+
     class App {
         public:
             App(int argc, char* argv[]);
@@ -26,8 +26,8 @@ namespace forecast {
             Coordinates parseCoords(char* optArg);
             OutputMode getMode(const char* outputMode);
             bool isFloat(std::string str);
-            void showWarnings(std::vector<ConfigError> warnings);
-            void exitWithErrors(std::vector<ConfigError> errors);
+            void showWarnings(std::vector<ConfigError>* warnings);
+            void exitWithErrors(std::vector<ConfigError>* errors);
             void help();
 
             HttpRequest m_request;

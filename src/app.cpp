@@ -37,11 +37,15 @@ namespace forecast {
     void App::run() {
         ConfigManager configManager = ConfigManager(&m_opts, &m_request);
         if (!configManager.configIsValid()) {
-
+            exitWithErrors(configManager.getErrors());
         }
 
         const Config* config = configManager.getConfig();
         configManager.saveConfig();
+
+        if (config->verbosity == Verbosity::HIGH) {
+            showWarnings(configManager.getWarnings());
+        }
 
         json forecastData = getForecastData(config->location, config->userAgent);
         Forecast forecast = Forecast(forecastData, config->location);
@@ -198,12 +202,22 @@ namespace forecast {
         return iss.eof() && !iss.fail();
     }
 
-    void App::showWarnings(std::vector<ConfigError> warnings) {
+    void App::showWarnings(std::vector<ConfigError>* warnings) {
+        std::stringstream ss;
+        for (ConfigError warning : *warnings) {
+            ss << "Warning: " << warning.msg << "\n";
+        }
 
+        std::cout << ss.str() << std::endl;
     }
 
-    void App::exitWithErrors(std::vector<ConfigError> errors) {
+    void App::exitWithErrors(std::vector<ConfigError>* errors) {
+        std::stringstream ss;
+        for (ConfigError error : *errors) {
+            ss << "Error: " << error.msg << "\n";
+        }
 
+        std::cout << ss.str() << std::endl;
     }
 
     void App::help() {

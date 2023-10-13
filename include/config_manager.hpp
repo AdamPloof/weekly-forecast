@@ -85,6 +85,7 @@ namespace forecast {
             bool userAgentIsValid(std::string userAgent);
             bool configIsValid();
             std::vector<ConfigError>* getErrors();
+            std::vector<ConfigError>* getWarnings();
 
         private:
             bool dataIsValid(json configData);
@@ -105,6 +106,7 @@ namespace forecast {
             std::string m_homeName;
             std::string m_userAgent;
             std::vector<ConfigError> m_errors;
+            std::vector<ConfigError> m_warnings;
     };
 }
 
