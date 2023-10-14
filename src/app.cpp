@@ -55,7 +55,7 @@ namespace forecast {
 
     void App::setOptions(int argc, char* argv[]) {
         int verbosity = 0;
-        const char* const shortOpts = "hc:d:vl:a:r:s:m:u:";
+        const char* const shortOpts = "hc:d:l:a:r:s:m:u:";
         static struct option longOpts[] = {
             // Flags
             {"verbose", no_argument, &verbosity, 2},
@@ -228,6 +228,7 @@ Usage:
 
 Options:
     --help, -h                       Show help
+    --verbose                        Show debugging info including warnings.
     --coords, -c LONGITUDE,LATITUDE  Get the forecast for a specific longitude and latitude
                                      Separate coordinates pair with a comma (no space)
     --days, -d INTEGER               The number of days you'd like a forecast for
