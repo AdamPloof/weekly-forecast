@@ -8,7 +8,10 @@
 #include "forecast.hpp"
 
 namespace forecast {
-    App::App(int argc, char* argv[]) : m_request(HttpRequest()) {
+    App::App(int argc, char* argv[]) : 
+        m_request(HttpRequest()),
+        m_context(OutputContext::FORECAST)
+    {
         setOptions(argc, argv);
     }
 
@@ -47,15 +50,22 @@ namespace forecast {
             showWarnings(configManager.getWarnings());
         }
 
-        json forecastData = getForecastData(config->location, config->userAgent);
-        Forecast forecast = Forecast(forecastData, config->location);
-        forecast.setRenderer(config->renderer);
-        forecast.render(config->days);
+        if (m_context == OutputContext::CONFIG) {
+            printConfig(config->verbosity, config->days, configManager.getHomeLocation(), configManager.getUserAgent());
+        } else if (m_context == OutputContext::LOCATIONS) {
+            printLocations(configManager.getLocations());
+        } else {
+            printForecast(config);
+        }
     }
 
     void App::setOptions(int argc, char* argv[]) {
+        const int SET_HOME = 1000;
+        const int SHOW_LOCATIONS = 1001;
+        const int SHOW_CONFIG = 1002;
+
         int verbosity = 0;
-        const char* const shortOpts = "hc:d:l:a:r:s:m:u:";
+        const char* const shortOpts = "hc:d:l:a:r:m:u:";
         static struct option longOpts[] = {
             // Flags
             {"verbose", no_argument, &verbosity, 2},
@@ -67,9 +77,11 @@ namespace forecast {
             {"location", required_argument, nullptr, 'l'},
             {"add-location", required_argument, nullptr, 'a'},
             {"remove-location", required_argument, nullptr, 'r'},
-            {"set-home", required_argument, nullptr, 's'},
+            {"set-home", required_argument, nullptr, SET_HOME},
             {"mode", required_argument, nullptr, 'm'},
             {"user-agent", required_argument, nullptr, 'u'},
+            {"show-locations", no_argument, nullptr, SHOW_LOCATIONS},
+            {"show-config", no_argument, nullptr, SHOW_CONFIG},
             {nullptr, 0, nullptr, 0}
         };
 
@@ -102,7 +114,7 @@ namespace forecast {
                 case 'r':
                     m_opts.removeLocation = optarg;
                     break;
-                case 's':
+                case SET_HOME:
                     m_opts.setHome = optarg;
                     break;
                 case 'm':
@@ -111,8 +123,14 @@ namespace forecast {
                 case 'u':
                     m_opts.userAgent = optarg;
                     break;
+                case SHOW_CONFIG:
+                    m_context = OutputContext::CONFIG;
+                    break;
+                case SHOW_LOCATIONS:
+                    m_context = OutputContext::LOCATIONS;
+                    break;
                 case '?':
-                    std::cout << "Unrecognized argument: " << arg << std::endl;
+                    std::cout << "Unrecognized argument" << std::endl;
                     std::cout << "\n";
                     help();
                     break;
@@ -200,6 +218,66 @@ namespace forecast {
         iss >> std::noskipws >> f;
 
         return iss.eof() && !iss.fail();
+    }
+
+    void App::printForecast(const Config* config) {
+        json forecastData = getForecastData(config->location, config->userAgent);
+        Forecast forecast = Forecast(forecastData, config->location);
+        forecast.setRenderer(config->renderer);
+        forecast.render(config->days);
+    }
+
+    void App::printConfig(Verbosity verbosity, int days, std::string homeLocation, std::string userAgent) {
+        std::stringstream ss;
+        ss << "Config: \n";
+        ss << "------------\n";
+        std::string verbosityName;
+        switch (verbosity) {
+            case Verbosity::LOW:
+                verbosityName = "low";
+                break;
+            case Verbosity::STD:
+                verbosityName = "standard";
+                break;
+            case Verbosity::HIGH:
+                verbosityName = "high";
+                break;
+            default:
+                throw std::invalid_argument("Did not recognize verbosity level");
+        }
+
+        ss << "Verbosity: " << verbosityName << '\n';
+        ss << "Days: " << days << '\n';
+        ss << "Home location: " << homeLocation << '\n';
+        ss << "User-Agent: " << userAgent << '\n';
+
+        std::cout << ss.str() << std::endl;
+    }
+
+    void App::printLocations(std::vector<Location>* locations) {
+        std::stringstream ss;
+
+        ss << "Locations:\n";
+        for (auto loc : *locations) {
+            ss << "------------\n";
+            ss << formatLocation(loc);
+        }
+
+        std::cout << ss.str() << std::endl;
+    }
+
+    std::string App::formatLocation(Location loc) {
+        std::stringstream ss;
+        ss << "Name: " << loc.name << '\n';
+        ss << "City: " << loc.city << '\n';
+        ss << "State: " << loc.state << '\n';
+        ss << "Longitude: " << loc.coords.longitude << '\n';
+        ss << "Latitude: " << loc.coords.latitude << '\n';
+        ss << "Grid ID: " << loc.gridId << '\n';
+        ss << "Grid X: " << loc.gridX << '\n';
+        ss << "Grid Y: " << loc.gridY << '\n';
+
+        return ss.str();
     }
 
     void App::showWarnings(std::vector<ConfigError>* warnings) {

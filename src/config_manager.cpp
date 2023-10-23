@@ -148,6 +148,14 @@ namespace forecast {
         m_activeConfig.location = &m_locations.back();
     }
 
+    std::vector<Location>* ConfigManager::getLocations() {
+        return &m_locations;
+    }
+
+    std::string ConfigManager::getHomeLocation() {
+        return m_homeName;
+    }
+
     bool ConfigManager::dataIsValid(json configData) {
         bool isValid = true;
         if (!configData.contains("locations")) {
@@ -312,6 +320,10 @@ namespace forecast {
         }
 
         return found;
+    }
+
+    std::string ConfigManager::getUserAgent() {
+        return m_userAgent;
     }
 
     json ConfigManager::serializeConfig() {

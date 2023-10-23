@@ -78,12 +78,15 @@ namespace forecast {
             void setDays(int days);
             void setLocation(std::string locName);
             void setLocation(Location loc);
+            std::string getHomeLocation();
             void setHomeLocation(std::string locName);
             void removeLocation(std::string locName);
+            std::string getUserAgent();
             void setRenderer(std::shared_ptr<OutputInterface> renderer);
             Location fetchLocation(HttpRequest* request, const Coordinates* coords);
             bool userAgentIsValid(std::string userAgent);
             bool configIsValid();
+            std::vector<Location>* getLocations();
             std::vector<ConfigError>* getErrors();
             std::vector<ConfigError>* getWarnings();
 

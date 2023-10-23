@@ -6,8 +6,11 @@ using namespace forecast;
 
 int main(int argc, char* argv[]) {
     App app = App(argc, argv);
+    if (!app.init()) {
+        return 1;
+    }
+
     try {
-        app.init();
         app.run();
     } catch (std::exception const& e) {
         std::cout << e.what() << std::endl;

@@ -13,7 +13,13 @@ using namespace forecast::http_request;
 
 namespace forecast {
     struct Coordinates;
+    struct Config;
     struct ConfigError;
+    enum class OutputContext {
+        FORECAST,
+        CONFIG,
+        LOCATIONS
+    };
 
     class App {
         public:
@@ -26,12 +32,17 @@ namespace forecast {
             Coordinates parseCoords(char* optArg);
             OutputMode getMode(const char* outputMode);
             bool isFloat(std::string str);
+            void printForecast(const Config* config);
+            void printConfig(Verbosity verbosity, int days, std::string homeLocation, std::string userAgent);
+            void printLocations(std::vector<Location>* locations);
+            std::string formatLocation(Location loc);
             void showWarnings(std::vector<ConfigError>* warnings);
             void exitWithErrors(std::vector<ConfigError>* errors);
             void help();
 
             HttpRequest m_request;
             Options m_opts;
+            OutputContext m_context;
     };
 }
 
