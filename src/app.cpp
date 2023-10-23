@@ -271,8 +271,8 @@ namespace forecast {
         ss << "Name: " << loc.name << '\n';
         ss << "City: " << loc.city << '\n';
         ss << "State: " << loc.state << '\n';
-        ss << "Longitude: " << loc.coords.longitude << '\n';
-        ss << "Latitude: " << loc.coords.latitude << '\n';
+        ss << "Latitude: " << std::setprecision(16) << loc.coords.latitude << '\n';
+        ss << "Longitude: " << std::setprecision(16) << loc.coords.longitude << '\n';
         ss << "Grid ID: " << loc.gridId << '\n';
         ss << "Grid X: " << loc.gridX << '\n';
         ss << "Grid Y: " << loc.gridY << '\n';
