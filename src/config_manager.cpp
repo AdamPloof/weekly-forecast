@@ -19,7 +19,9 @@ namespace forecast {
         renderer(nullptr),
         userAgent("") {};
 
-    ConfigManager::ConfigManager(Options* opts, HttpRequest* request) {
+    ConfigManager::ConfigManager(Options* opts, HttpRequest* request, std::string configPath) : 
+        m_configPath(configPath) 
+    {
         loadConfig();
         setOptions(opts, request);
     }
@@ -30,7 +32,7 @@ namespace forecast {
 
     void ConfigManager::loadConfig() {
         std::ifstream handle;
-        handle.open(ConfigManager::CONFIG_FILENAME);
+        handle.open(m_configPath);
         if (handle.is_open()) {
             json configData = json::parse(handle);
             parseConfig(configData);
@@ -47,7 +49,7 @@ namespace forecast {
     }
 
     void ConfigManager::saveConfig() {
-        std::ofstream configFile = std::ofstream(ConfigManager::CONFIG_FILENAME, std::ios::trunc);
+        std::ofstream configFile = std::ofstream(m_configPath, std::ios::trunc);
         configFile << std::setw(4) << serializeConfig() << std::endl;
         configFile.close();
     }

@@ -2,10 +2,62 @@
 #include <sstream>
 #include <getopt.h>
 #include <stdio.h>
+#include <filesystem>
 #include "app.hpp"
 #include "location.hpp"
 #include "config_manager.hpp"
 #include "forecast.hpp"
+
+#ifdef _WIN32
+    #include <Windows.h>
+#elif __linux__
+    #include <libgen.h>  
+    #include <unistd.h>
+    #include <limits.h>
+#elif __APPLE__
+    #include <mach-o/dyld.h>
+#endif
+
+namespace {
+    /**
+     * Return the path to the config.json file relative to the executable. Create the config
+     * directory if it doesn't exist. If unable to create a config directory, returns an empty string.
+    */
+    std::string getConfigPath() {
+        std::string execDir;
+
+#ifdef _WIN32
+        char buffer[MAX_PATH]
+        GetModuleFileName(null, buffer, MAX_PATH);
+        execDir = buffer;
+        execDir = execDir.substr(0, execDir.find_last_of("\\/"));
+#elif __linux__
+        char buffer[PATH_MAX];
+        ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+        if (len != -1) {
+            buffer[len] = '\0';
+            execDir = buffer;
+            execDir = execDir.substr(0, execDir.find_last_of("/"));
+        }
+#elif __APPLE__
+        char buffer[PATH_MAX];
+        uint32_t size = sizeof(buffer);
+        if (_NSGetExecutablePath(buffer, &size) == 0) {
+            execDir = buffer;
+            execDir = execDir.substr(0, execDir.find_last_of("/"));
+        }
+#endif
+
+        std::string configDir = execDir + "/config/";
+        if (!std::filesystem::exists(configDir)) {
+            if (!std::filesystem::create_directory(configDir)) {
+                return "";
+            }
+        }
+
+        return execDir + "/config/config.json";
+    }
+}
 
 namespace forecast {
     App::App(int argc, char* argv[]) : 
@@ -38,7 +90,12 @@ namespace forecast {
      * something like that.
     */
     void App::run() {
-        ConfigManager configManager = ConfigManager(&m_opts, &m_request);
+        std::string configPath = getConfigPath();
+        if (configPath.empty()) {
+            std::cout << "Error: could not access config directory";
+        }
+
+        ConfigManager configManager = ConfigManager(&m_opts, &m_request, configPath);
         if (!configManager.configIsValid()) {
             exitWithErrors(configManager.getErrors());
         }
@@ -306,7 +363,7 @@ Usage:
 
 Options:
     --help, -h                       Show help
-    --verbose                        Show debugging info including warnings.
+    --verbose                        Show debugging info including warnings
     --coords, -c LONGITUDE,LATITUDE  Get the forecast for a specific longitude and latitude
                                      Separate coordinates pair with a comma (no space)
     --days, -d INTEGER               The number of days you'd like a forecast for
@@ -317,7 +374,10 @@ Options:
     --set-home, -s NAME              Set the default/home location
     --mode, -m row|grid              Choose the output mode: row or grid [default: grid]
     --user-agent, -u EMAIL           Set the email address to use when requesting forecasts
-                                     from the NOAA weather API.
+                                     from the NOAA weather API
+    --show--locations                Output a list of all saved locations
+    --show-config                    Output the current configuration defaults for verbosity,
+                                     days, home-location, and User-Agent
         )";
         std::cout << usage << std::endl;
         exit(1);

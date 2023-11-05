@@ -68,7 +68,7 @@ namespace forecast {
             static const std::string TEMP_LOC_NAME;
             static const std::regex VALID_EMAIL_REGEX;
 
-            ConfigManager(Options* opts, HttpRequest* request);
+            ConfigManager(Options* opts, HttpRequest* request, std::string configPath);
             // ~ConfigManager();
 
             const Config* getConfig();
@@ -102,6 +102,7 @@ namespace forecast {
             std::string promptForUserAgent(bool isRetry = false);
             void addError(std::string field, std::string msg, ConfigErrorLvl lvl);
 
+            std::string m_configPath;
             Config m_activeConfig;
             std::vector<Location> m_locations;
             int m_defaultDays;
