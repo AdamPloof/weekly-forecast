@@ -1,6 +1,8 @@
 # Weekly Forecast
 Weekly forecast is a command line weather app. Forecasts are retrieved through the [NOAA forecast API](https://www.weather.gov/documentation/services-web-api) for any location in the United States.
 
+![Weekly forecast screenshot](/images/forecast_screenshot.png "Weekly Forecast")
+
 ## Features
 - 7 day forecasts divided into day and night periods
 - Retrieve forecast for a location by providing longitude and latitude coordinates
