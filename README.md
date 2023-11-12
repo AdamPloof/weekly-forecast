@@ -55,4 +55,4 @@ If you'd like to change the `User-Agent` later, you can set it with the `--user-
 - No easy installer, you've got to build it yourself
 - Makefile is only setup for compiling with GCC
 - Has only been tested on Mac
-- There's probably some bugs I haven't found yet ¯\_(ツ)_/¯
+- There's probably some bugs I haven't found yet ¯\\_(ツ)_/¯

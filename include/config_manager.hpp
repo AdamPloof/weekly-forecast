@@ -83,7 +83,7 @@ namespace forecast {
             void removeLocation(std::string locName);
             std::string getUserAgent();
             void setRenderer(std::shared_ptr<OutputInterface> renderer);
-            Location fetchLocation(HttpRequest* request, const Coordinates* coords);
+            Location fetchLocation(HttpRequest* request, const Coordinates* coords, std::string userAgent);
             bool userAgentIsValid(std::string userAgent);
             bool configIsValid();
             std::vector<Location>* getLocations();

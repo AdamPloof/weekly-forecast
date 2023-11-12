@@ -84,7 +84,7 @@ namespace forecast {
         if (opts->coords.isValid()) {
             // Fetch location for coordinates.
             // Coordinates coords = {44.389243, -72.887906};
-            Location location = fetchLocation(request, &opts->coords);
+            Location location = fetchLocation(request, &opts->coords, m_activeConfig.userAgent);
             if (!opts->addLocation.empty()) {
                 location.name = opts->addLocation;
             }
@@ -365,11 +365,16 @@ namespace forecast {
         m_activeConfig.renderer = renderer;
     }
 
-    Location ConfigManager::fetchLocation(HttpRequest* request, const Coordinates* coords) {
+    Location ConfigManager::fetchLocation(HttpRequest* request, const Coordinates* coords, std::string userAgent) {
+        if (m_userAgent.empty()) {
+            throw std::invalid_argument("User-Agent must be set when requesting location data.");
+        }
+
         std::ostringstream url;
         url << "https://api.weather.gov/points/" 
             << coords->latitude << "," << coords->longitude;
 
+        request->appendHeader("User-Agent:", userAgent);
         request->send(url.str());
 
         json gridPointsData = request->getJsonResponse();

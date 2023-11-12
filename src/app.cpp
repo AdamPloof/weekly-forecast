@@ -3,6 +3,7 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <filesystem>
+#include <stdlib.h>
 #include "app.hpp"
 #include "location.hpp"
 #include "config_manager.hpp"
@@ -353,6 +354,7 @@ namespace forecast {
         }
 
         std::cout << ss.str() << std::endl;
+        std::exit(EXIT_FAILURE);
     }
 
     void App::help() {
