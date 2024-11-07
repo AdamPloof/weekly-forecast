@@ -581,7 +581,7 @@ using namespace test::grid_printer;
 int main() {
     std::cout << "##### Running GridPrinter Tests #####\n" << std::endl;
 
-    json data = getMockForecastData();
+    const json data = getMockForecastData();
     Location loc = Location("test_loc");
     Forecast forecast = Forecast(data, &loc);
     TestGridPrinter testCase = TestGridPrinter(&forecast);

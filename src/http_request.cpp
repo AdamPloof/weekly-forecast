@@ -1,4 +1,5 @@
 #include <curl/curl.h>
+#include <stdio.h>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <iostream>

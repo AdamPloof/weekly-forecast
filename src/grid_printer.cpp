@@ -134,16 +134,15 @@ namespace forecast {
         }
         std::string precip = "precipitation: " + std::to_string(precipVal) + "%";
 
-        int humidityVal;
-        if (period["relativeHumidity"]["value"] == nullptr) {
-            humidityVal = 0;
+        std::stringstream windDirection;
+        if (period["windDirection"] == nullptr) {
+            windDirection << "Wind: calm";
         } else {
-            humidityVal = period["relativeHumidity"]["value"];
+            windDirection << "Wind: " << period["windDirection"];
         }
-        std::string humidity = "humidty: " + std::to_string(humidityVal) + "%";
 
         std::ostringstream ss;
-        ss << temperature << " | " << humidity << " | " << precip;
+        ss << temperature << " | " << windDirection.str() << " | " << precip;
 
         return ss.str();
     }
